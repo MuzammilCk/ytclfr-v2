@@ -1,0 +1,242 @@
+[2026-03-08 22:38:14,847: WARNING/MainProcess] C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\celery\worker\consumer\consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2026-03-08 22:38:14,851: INFO/MainProcess] Connected to redis://127.0.0.1:6379/0
+[2026-03-08 22:38:14,852: WARNING/MainProcess] C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\celery\worker\consumer\consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2026-03-08 22:38:14,855: INFO/MainProcess] mingle: searching for neighbors
+[2026-03-08 22:38:15,868: INFO/MainProcess] mingle: all alone
+[2026-03-08 22:38:15,878: INFO/MainProcess] celery@UnknownDragger ready.
+[2026-03-08 22:38:17,790: INFO/MainProcess] Task ytclfr.pipeline.run[2c69cfdb-bfa9-4568-b93e-6b18e3555bb0] received
+[2026-03-08 22:38:18,070: INFO/MainProcess] Pipeline workflow scheduled.
+[2026-03-08 22:38:18,071: INFO/MainProcess] Task ytclfr.pipeline.run[2c69cfdb-bfa9-4568-b93e-6b18e3555bb0] succeeded in 0.27773590001743287s: {'job_id': '16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'workflow_id': '2df6355c-1cdd-42bd-8bee-658907df2152'}
+[2026-03-08 22:38:18,072: INFO/MainProcess] Task ytclfr.pipeline.download_video[89b27f51-e1f1-4f2a-8a79-625fe71a0c61] received
+[2026-03-08 22:38:23,187: INFO/MainProcess] Download stage completed.
+[2026-03-08 22:38:23,189: INFO/MainProcess] Task ytclfr.pipeline.download_video[89b27f51-e1f1-4f2a-8a79-625fe71a0c61] succeeded in 5.116202599951066s: {'job_id': '16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'video_id': '160e5c5d-418f-4282-ba30-9d1e560ed719', 'video_url': 'https://www.youtube.com/watch?v=M7FIvfx5J10', 'title': 'Volvo Trucks - The Epic Split feat. Van Damme', 'job_dir': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'video_path': 'D:\facts\ytclfr\storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866\video\M7FIvfx5J10.mp4'}
+[2026-03-08 22:38:23,191: INFO/MainProcess] Task ytclfr.pipeline.extract_frames[99d09226-d079-4dfa-9c40-9a7c6982fce9] received
+[2026-03-08 22:38:23,638: INFO/MainProcess] Detecting scenes...
+[2026-03-08 22:38:27,787: INFO/MainProcess] Frame extraction stage completed.
+[2026-03-08 22:38:27,789: INFO/MainProcess] Task ytclfr.pipeline.extract_frames[99d09226-d079-4dfa-9c40-9a7c6982fce9] succeeded in 4.598259099991992s: {'job_id': '16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'video_id': '160e5c5d-418f-4282-ba30-9d1e560ed719', 'video_url': 'https://www.youtube.com/watch?v=M7FIvfx5J10', 'title': 'Volvo Trucks - The Epic Split feat. Van Damme', 'job_dir': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'video_path': 'D:\facts\ytclfr\storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866\video\M7FIvfx5J10.mp4', 'fps': 1, 'frames': [{'frame_id': 'ef41ca07-4deb-4db3-ad69-9d418076fd0c', 'image_path': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866\frames\scene_changes\frame_000000_0000000000ms.jpg', 'timestamp_seconds': 0.0, 'source_type': 'interval_2s+scene_change'}, {'frame_id': 'edfaa617-97d0-490c-af31-d81b2d5f2507', 'image_path': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866\frames\interval_2s\frame_000001_0000002000ms.jpg', 'timestamp_seconds': 2.0, 'source_type': 'interval_2s'}, {'frame_id': '2da2c0f6-3075-4645-a2ca-3c7c61ce065d', 'image_path': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866\frames\interval_2s\frame_000002_0000004000ms.jpg', 'ti...', ...}]}
+[2026-03-08 22:38:27,791: INFO/MainProcess] Task ytclfr.pipeline.run_ocr[1fbd9b7c-79f6-4eed-bc74-7acf9f0c4124] received
+INFO: Could not find files for the given pattern(s).
+[2026-03-08 22:38:33,465: WARNING/MainProcess] C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\paddle\utils\cpp_extension\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md
+  warnings.warn(warning_message)
+
+[2026-03-08 22:42:57,283: INFO/MainProcess] OCR stage completed.
+[2026-03-08 22:42:57,286: INFO/MainProcess] Task ytclfr.pipeline.run_ocr[1fbd9b7c-79f6-4eed-bc74-7acf9f0c4124] succeeded in 269.49432400008664s: {'job_id': '16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'video_id': '160e5c5d-418f-4282-ba30-9d1e560ed719', 'video_url': 'https://www.youtube.com/watch?v=M7FIvfx5J10', 'title': 'Volvo Trucks - The Epic Split feat. Van Damme', 'job_dir': 'storage\16d7759b-f6a1-48ac-9c82-4523b4bcb866', 'ocr_text': 'ROTTER
+GLOBCROTT
+OBETROTTER
+GLOBETROTTER
+GLDBETROTTERS
+GLOBETROTTER
+GLDBEIROTTERS
+AER
+GLDBETROTTER
+DBESROTER
+GUOBEADROTTERA
+This test was set up to demanstrale the stability
+and precision al Volvo Dynarme Steading
+This test was set up to demonstrate the stability
+and precision of Volvo Dynamic Steering
+This test was set up to demonstrate the stability
+and precision of Volvo Dynamic Steering
+This test was set up to demonstrate the stability
+and precision of Volvo Dynamic Steering
+This test was set up to demonstrate the stability
+and precision of Volvo Dynamic Steering
+EOEACM
+It was carried out by professionals
+in a closed-off area
+It was carried out by professionals
+in a closed-off area'}
+[2026-03-08 22:42:57,292: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] received
+[2026-03-08 22:42:57,851: INFO/MainProcess] HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+[2026-03-08 22:42:57,854: ERROR/MainProcess] AI parse stage failed.
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.
+[2026-03-08 22:42:57,877: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] retry: Retry in 2s: AIParsingError('OpenRouter parsing request failed.')
+[2026-03-08 22:42:57,878: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] received
+[2026-03-08 22:43:00,274: INFO/MainProcess] HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+[2026-03-08 22:43:00,280: ERROR/MainProcess] AI parse stage failed.
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.
+[2026-03-08 22:43:00,285: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] received
+[2026-03-08 22:43:00,287: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] retry: Retry in 4s: AIParsingError('OpenRouter parsing request failed.')
+[2026-03-08 22:43:04,584: INFO/MainProcess] HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+[2026-03-08 22:43:04,591: ERROR/MainProcess] AI parse stage failed.
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.
+[2026-03-08 22:43:04,599: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] received
+[2026-03-08 22:43:04,601: INFO/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] retry: Retry in 8s: AIParsingError('OpenRouter parsing request failed.')
+[2026-03-08 22:43:12,912: INFO/MainProcess] HTTP Request: POST https://openrouter.ai/api/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+[2026-03-08 22:43:12,919: ERROR/MainProcess] AI parse stage failed.
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.
+[2026-03-08 22:43:12,920: ERROR/MainProcess] parse_text failed permanently: OpenRouter parsing request failed.
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.
+[2026-03-08 22:43:12,929: ERROR/MainProcess] Task ytclfr.pipeline.parse_text[408debad-f4ca-456b-a781-1f0823f79653] raised unexpected: AIParsingError('OpenRouter parsing request failed.')
+Traceback (most recent call last):
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 36, in parse_ocr_text
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://openrouter.ai/api/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\celery\app\trace.py", line 453, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\site-packages\celery\app\trace.py", line 736, in __protected_call__
+    return self.run(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 36, in parse_text
+    retry_or_fail(task=self, exc=exc, job_id=str(payload.job_id), stage="parse_text")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\task_support.py", line 309, in retry_or_fail
+    raise exc
+  File "D:\facts\ytclfr\apps\worker\src\ytclfr_worker\tasks\ai_tasks.py", line 21, in parse_text
+    parsed_payload = asyncio.run(get_ai_client().parse_ocr_text(payload.ocr_text))
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\THINKPAD L13\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\facts\ytclfr\packages\infrastructure\src\ytclfr_infra\ai\openrouter_client.py", line 48, in parse_ocr_text
+    raise AIParsingError("OpenRouter parsing request failed.") from exc
+ytclfr_core.errors.exceptions.AIParsingError: OpenRouter parsing request failed.

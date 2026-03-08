@@ -1,0 +1,295 @@
+"""Final action generator based on parsed content type."""
+
+from dataclasses import dataclass
+from typing import Any
+from urllib.parse import quote_plus
+
+from ytclfr_core.config import Settings
+from ytclfr_core.errors.exceptions import AIParsingError, SpotifyIntegrationError
+from ytclfr_infra.spotify.spotify_service import PlaylistCreationResult, SpotifyService
+
+
+@dataclass(slots=True)
+class ActionResult:
+    """Final action output payload."""
+
+    content_type: str
+    action_type: str
+    status: str
+    payload: dict[str, Any]
+    message: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert dataclass into JSON-compatible dictionary."""
+        return {
+            "content_type": self.content_type,
+            "action_type": self.action_type,
+            "status": self.status,
+            "message": self.message,
+            "payload": self.payload,
+        }
+
+
+class ActionEngine:
+    """Generate final actionable output from structured parsed payload."""
+
+    def __init__(
+        self,
+        settings: Settings,
+        spotify_service: SpotifyService | None = None,
+    ) -> None:
+        self._settings = settings
+        self._spotify = spotify_service or SpotifyService(settings)
+
+    async def generate(
+        self,
+        parsed_payload: dict[str, Any],
+        *,
+        video_title: str | None = None,
+    ) -> dict[str, Any]:
+        """Generate final action output based on detected content type."""
+        try:
+            content_type = str(parsed_payload.get("video_type", "")).strip().lower()
+            structured = parsed_payload.get("structured_data", {})
+            if not isinstance(structured, dict):
+                structured = {}
+
+            if content_type == "music":
+                result = await self._generate_music_action(
+                    parsed_payload=parsed_payload,
+                    structured_data=structured.get("music"),
+                    video_title=video_title,
+                )
+                return result.to_dict()
+            if content_type == "recipe":
+                result = self._generate_recipe_action(structured_data=structured.get("recipe"))
+                return result.to_dict()
+            if content_type in {"movie", "movies"}:
+                result = self._generate_movie_action(structured_data=structured.get("movie"))
+                return result.to_dict()
+            if content_type == "books":
+                result = self._generate_books_action(structured_data=structured.get("books"))
+                return result.to_dict()
+
+            return ActionResult(
+                content_type=content_type or "unknown",
+                action_type="none",
+                status="skipped",
+                payload={},
+                message=f"No action mapping defined for content type: {content_type or 'unknown'}.",
+            ).to_dict()
+        except Exception as exc:
+            raise AIParsingError("Failed to generate final action output.") from exc
+
+    async def _generate_music_action(
+        self,
+        *,
+        parsed_payload: dict[str, Any],
+        structured_data: Any,
+        video_title: str | None,
+    ) -> ActionResult:
+        """Create Spotify playlist output for music content."""
+        music_data = structured_data if isinstance(structured_data, dict) else {}
+        track_queries = self._collect_music_queries(parsed_payload=parsed_payload, music_data=music_data)
+        if not track_queries:
+            return ActionResult(
+                content_type="music",
+                action_type="spotify_playlist",
+                status="skipped",
+                payload={},
+                message="No suitable track queries were extracted from parsed content.",
+            )
+
+        user_id = (self._settings.spotify_user_id or "").strip()
+        user_access_token = (self._settings.spotify_user_access_token or "").strip()
+        if not user_id or not user_access_token:
+            return ActionResult(
+                content_type="music",
+                action_type="spotify_playlist",
+                status="skipped",
+                payload={
+                    "track_queries": track_queries,
+                },
+                message=(
+                    "Spotify user credentials are not configured. "
+                    "Set SPOTIFY_USER_ID and SPOTIFY_USER_ACCESS_TOKEN."
+                ),
+            )
+
+        playlist_name = (video_title or music_data.get("title") or "YTCLFR Music Mix").strip()
+        playlist_name = playlist_name[:100] if playlist_name else "YTCLFR Music Mix"
+        try:
+            playlist_result = await self._spotify.create_playlist_from_queries(
+                user_id=user_id,
+                user_access_token=user_access_token,
+                playlist_name=playlist_name,
+                track_queries=track_queries,
+                playlist_description="Generated by YTCLFR from parsed video content.",
+                public=False,
+                include_ambiguous=False,
+            )
+        except SpotifyIntegrationError as exc:
+            return ActionResult(
+                content_type="music",
+                action_type="spotify_playlist",
+                status="failed",
+                payload={"track_queries": track_queries},
+                message=str(exc),
+            )
+
+        return ActionResult(
+            content_type="music",
+            action_type="spotify_playlist",
+            status="completed",
+            payload=self._serialize_playlist_result(playlist_result),
+            message=None,
+        )
+
+    def _generate_recipe_action(self, *, structured_data: Any) -> ActionResult:
+        """Return recipe JSON output for recipe content."""
+        recipe_data = structured_data if isinstance(structured_data, dict) else {}
+        return ActionResult(
+            content_type="recipe",
+            action_type="recipe_json",
+            status="completed",
+            payload={
+                "recipe": {
+                    "dish_name": recipe_data.get("dish_name"),
+                    "cuisine": recipe_data.get("cuisine"),
+                    "ingredients": self._safe_string_list(recipe_data.get("ingredients")),
+                    "steps": self._safe_string_list(recipe_data.get("steps")),
+                    "cook_time_minutes": recipe_data.get("cook_time_minutes"),
+                    "tools": self._safe_string_list(recipe_data.get("tools")),
+                }
+            },
+            message=None,
+        )
+
+    def _generate_movie_action(self, *, structured_data: Any) -> ActionResult:
+        """Generate TMDB links for movie content."""
+        movie_data = structured_data if isinstance(structured_data, dict) else {}
+        queries = []
+        title = str(movie_data.get("title", "")).strip()
+        if title:
+            queries.append(title)
+        for character in self._safe_string_list(movie_data.get("characters"))[:5]:
+            queries.append(character)
+        unique_queries = self._deduplicate_strings(queries)
+        links = [
+            {
+                "query": query,
+                "url": f"{self._settings.tmdb_web_base_url.rstrip('/')}/search?query={quote_plus(query)}",
+            }
+            for query in unique_queries
+        ]
+        return ActionResult(
+            content_type="movie",
+            action_type="tmdb_links",
+            status="completed",
+            payload={"links": links},
+            message=None,
+        )
+
+    def _generate_books_action(self, *, structured_data: Any) -> ActionResult:
+        """Generate Goodreads links for books content."""
+        books_data = structured_data if isinstance(structured_data, dict) else {}
+        queries = []
+        title = str(books_data.get("title", "")).strip()
+        author = str(books_data.get("author", "")).strip()
+        if title and author:
+            queries.append(f"{title} {author}")
+        elif title:
+            queries.append(title)
+        elif author:
+            queries.append(author)
+        for idea in self._safe_string_list(books_data.get("key_ideas"))[:5]:
+            queries.append(idea)
+        unique_queries = self._deduplicate_strings(queries)
+        links = [
+            {
+                "query": query,
+                "url": (
+                    f"{self._settings.goodreads_web_base_url.rstrip('/')}/search"
+                    f"?q={quote_plus(query)}"
+                ),
+            }
+            for query in unique_queries
+        ]
+        return ActionResult(
+            content_type="books",
+            action_type="goodreads_links",
+            status="completed",
+            payload={"links": links},
+            message=None,
+        )
+
+    def _collect_music_queries(
+        self,
+        *,
+        parsed_payload: dict[str, Any],
+        music_data: dict[str, Any],
+    ) -> list[str]:
+        """Build candidate search queries for Spotify matching."""
+        queries: list[str] = []
+        title = str(music_data.get("title", "")).strip()
+        artist = str(music_data.get("artist", "")).strip()
+        if title and artist:
+            queries.append(f"{title} {artist}")
+        elif title:
+            queries.append(title)
+
+        for entity in self._safe_string_list(parsed_payload.get("entities"))[:10]:
+            queries.append(entity)
+
+        for theme in self._safe_string_list(music_data.get("themes"))[:10]:
+            queries.append(theme)
+
+        return self._deduplicate_strings(queries)
+
+    def _safe_string_list(self, value: Any) -> list[str]:
+        """Normalize potentially mixed list values to non-empty strings."""
+        if not isinstance(value, list):
+            return []
+        return [str(item).strip() for item in value if str(item).strip()]
+
+    def _deduplicate_strings(self, values: list[str]) -> list[str]:
+        """Preserve order while removing case-insensitive duplicates."""
+        seen: set[str] = set()
+        result: list[str] = []
+        for value in values:
+            key = value.lower().strip()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            result.append(value.strip())
+        return result
+
+    def _serialize_playlist_result(self, result: PlaylistCreationResult) -> dict[str, Any]:
+        """Convert playlist dataclass to JSON-compatible dictionary."""
+        return {
+            "playlist_id": result.playlist_id,
+            "playlist_url": result.playlist_url,
+            "added_tracks": [
+                {
+                    "track_id": track.track_id,
+                    "name": track.name,
+                    "artists": track.artists,
+                    "uri": track.uri,
+                    "external_url": track.external_url,
+                }
+                for track in result.added_tracks
+            ],
+            "not_found_queries": result.not_found_queries,
+            "ambiguous_matches": [
+                {
+                    "query": item.query,
+                    "status": item.status,
+                    "message": item.message,
+                    "selected_track_id": (
+                        item.selected_track.track_id if item.selected_track is not None else None
+                    ),
+                }
+                for item in result.ambiguous_matches
+            ],
+        }
+

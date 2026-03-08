@@ -1,0 +1,24 @@
+ 
+ -------------- celery@UnknownDragger v5.4.0 (opalescent)
+--- ***** ----- 
+-- ******* ---- Windows-11-10.0.26200-SP0 2026-03-08 22:38:14
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         ytclfr-worker:0x206b52b1be0
+- ** ---------- .> transport:   redis://127.0.0.1:6379/0
+- ** ---------- .> results:     redis://127.0.0.1:6379/1
+- *** --- * --- .> concurrency: 8 (solo)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . ytclfr.pipeline.download_video
+  . ytclfr.pipeline.extract_frames
+  . ytclfr.pipeline.generate_output
+  . ytclfr.pipeline.parse_text
+  . ytclfr.pipeline.run
+  . ytclfr.pipeline.run_ocr
+

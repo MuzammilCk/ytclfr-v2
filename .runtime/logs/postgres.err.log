@@ -1,0 +1,19 @@
+2026-03-08 22:38:11.197 IST [19060] LOG:  starting PostgreSQL 18.2 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+2026-03-08 22:38:11.205 IST [19060] LOG:  listening on IPv6 address "::1", port 5432
+2026-03-08 22:38:11.206 IST [19060] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-03-08 22:38:11.307 IST [15312] LOG:  database system was interrupted; last known up at 2026-03-08 22:33:03 IST
+2026-03-08 22:38:11.517 IST [15312] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-03-08 22:38:11.522 IST [15312] LOG:  redo starts at 0/1D0A0C0
+2026-03-08 22:38:11.530 IST [15312] LOG:  invalid record length at 0/1D2E1F8: expected at least 24, got 0
+2026-03-08 22:38:11.530 IST [15312] LOG:  redo done at 0/1D2E1C0 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-03-08 22:38:11.536 IST [22200] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-03-08 22:38:11.648 IST [22200] LOG:  checkpoint complete: wrote 30 buffers (0.2%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.011 s, sync=0.085 s, total=0.116 s; sync files=25, longest=0.012 s, average=0.004 s; distance=144 kB, estimate=144 kB; lsn=0/1D2E1F8, redo lsn=0/1D2E1F8
+2026-03-08 22:38:11.664 IST [19060] LOG:  database system is ready to accept connections
+2026-03-08 22:43:11.655 IST [22200] LOG:  checkpoint starting: time
+2026-03-08 22:43:15.781 IST [22200] LOG:  checkpoint complete: wrote 37 buffers (0.2%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=4.029 s, sync=0.080 s, total=4.126 s; sync files=27, longest=0.013 s, average=0.003 s; distance=159 kB, estimate=159 kB; lsn=0/1D59C60, redo lsn=0/1D561D8
+2026-03-08 22:43:18.837 IST [13944] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-03-08 22:43:18.843 IST [5124] FATAL:  terminating connection due to unexpected postmaster exit
+2026-03-08 22:43:18.847 IST [18292] FATAL:  could not open shared memory segment "Global/PostgreSQL.1970356392": No such file or directory
+2026-03-08 22:43:18.847 IST [1956] FATAL:  could not open shared memory segment "Global/PostgreSQL.1970356392": No such file or directory
+2026-03-08 22:43:18.847 IST [16300] FATAL:  could not open shared memory segment "Global/PostgreSQL.1970356392": No such file or directory

@@ -1,0 +1,354 @@
+:root {
+  --bg-primary: #f2f4ed;
+  --bg-secondary: #d7eadc;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-soft: rgba(255, 255, 255, 0.7);
+  --ink-strong: #17322b;
+  --ink-muted: #426259;
+  --accent: #15724c;
+  --accent-strong: #0f5d3d;
+  --danger: #8a2525;
+  --warning: #8b5c16;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --shadow-soft: 0 16px 40px rgba(23, 50, 43, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  color: var(--ink-strong);
+  background: linear-gradient(140deg, var(--bg-primary), var(--bg-secondary));
+  position: relative;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ambient-gradient {
+  position: fixed;
+  inset: -10% -5%;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(21, 114, 76, 0.18), transparent 38%),
+    radial-gradient(circle at 85% 10%, rgba(227, 145, 87, 0.16), transparent 34%),
+    radial-gradient(circle at 80% 85%, rgba(41, 116, 173, 0.15), transparent 35%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+  background: rgba(242, 244, 237, 0.7);
+  border-bottom: 1px solid rgba(23, 50, 43, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 3.4vw, 2.6rem);
+}
+
+.brand {
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.1rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.site-nav a {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+}
+
+.site-nav a:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.page-shell {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 92vw);
+  margin: 2.25rem auto 4rem;
+}
+
+.card {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(23, 50, 43, 0.08);
+}
+
+.hero {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(21, 114, 76, 0.12);
+  color: var(--accent-strong);
+  border-radius: 999px;
+  padding: 0.28rem 0.72rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.title {
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  margin: 1rem 0 0.65rem;
+  font-size: clamp(1.6rem, 4.3vw, 2.7rem);
+  line-height: 1.1;
+}
+
+.lead {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+
+.stack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.field-label {
+  font-weight: 700;
+  font-size: 0.93rem;
+}
+
+.text-input {
+  width: 100%;
+  margin-top: 0.38rem;
+  border: 1px solid rgba(23, 50, 43, 0.18);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  color: var(--ink-strong);
+  background: var(--surface-soft);
+}
+
+.text-input:focus {
+  outline: 2px solid rgba(21, 114, 76, 0.24);
+  border-color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1.25rem;
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.button-primary {
+  background: linear-gradient(130deg, var(--accent), #1a885b);
+  color: #f6fff9;
+  box-shadow: 0 10px 24px rgba(21, 114, 76, 0.28);
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-strong);
+  border: 1px solid rgba(23, 50, 43, 0.16);
+}
+
+.button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.feedback {
+  font-size: 0.94rem;
+  margin: 0.4rem 0 0;
+}
+
+.feedback-error {
+  color: var(--danger);
+}
+
+.feedback-warning {
+  color: var(--warning);
+}
+
+.meta {
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+}
+
+.status-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.28rem 0.72rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.status-pending {
+  background: rgba(139, 92, 22, 0.16);
+  color: #6e4811;
+}
+
+.status-running {
+  background: rgba(41, 116, 173, 0.16);
+  color: #1f5a84;
+}
+
+.status-completed {
+  background: rgba(21, 114, 76, 0.16);
+  color: var(--accent-strong);
+}
+
+.status-failed {
+  background: rgba(138, 37, 37, 0.16);
+  color: #7d2020;
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(23, 50, 43, 0.12);
+  overflow: hidden;
+}
+
+.progress-value {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(130deg, #15724c, #2a95c9);
+  transition: width 0.2s ease;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(23, 50, 43, 0.2);
+}
+
+.timeline-active {
+  background: var(--accent);
+}
+
+.timeline-text {
+  color: var(--ink-muted);
+}
+
+.results-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
+.result-item {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(23, 50, 43, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 1rem;
+}
+
+.result-item h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+}
+
+.result-item p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.tag {
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: rgba(23, 50, 43, 0.12);
+  color: var(--ink-muted);
+  padding: 0.25rem 0.6rem;
+}
+
+.playlist-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(23, 50, 43, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.playlist-frame {
+  width: 100%;
+  height: 152px;
+  border: 0;
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .site-nav {
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+}
+

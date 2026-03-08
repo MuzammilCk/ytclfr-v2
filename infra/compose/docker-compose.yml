@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ytclfr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ytclfr}
+      POSTGRES_DB: ${POSTGRES_DB:-ytclfr}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/api.Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ../../.env
+    ports:
+      - "${API_PORT:-8000}:8000"
+    command: uvicorn ytclfr_api.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/worker.Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ../../.env
+    command: celery -A ytclfr_worker.worker:celery_app worker --loglevel=INFO

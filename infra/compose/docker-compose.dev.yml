@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  api:
+    volumes:
+      - ../../apps:/app/apps
+      - ../../packages:/app/packages
+  worker:
+    volumes:
+      - ../../apps:/app/apps
+      - ../../packages:/app/packages

@@ -1,0 +1,35 @@
+INFO:     Started server process [5736]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-03-08 22:38:17,789 INFO ytclfr_api.api.v1.endpoints.jobs Queued process-video job.
+2026-03-08 22:38:27,815 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:38:37,826 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:38:47,851 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:38:57,862 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:07,895 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:17,908 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:27,974 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:37,983 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:47,990 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:39:58,008 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:08,032 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:18,045 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:28,076 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:38,098 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:48,120 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:40:58,144 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:08,157 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:18,167 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:28,196 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:38,215 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:48,236 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:41:58,252 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:08,270 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:18,304 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:28,334 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:38,346 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:48,377 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:42:58,393 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:43:08,406 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
+2026-03-08 22:43:18,414 INFO ytclfr_api.api.v1.endpoints.jobs Job status fetched.
