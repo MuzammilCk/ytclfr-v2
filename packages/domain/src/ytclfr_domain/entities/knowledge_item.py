@@ -10,3 +10,4 @@ class KnowledgeItem:
     title: str
     description: str
     tags: list[str]
+    action_output: dict[str, object] | None = None

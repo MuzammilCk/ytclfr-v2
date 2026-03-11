@@ -1,6 +1,11 @@
-"""Domain entity for video processing jobs."""
+"""Domain entity for video processing jobs.
 
-from dataclasses import dataclass
+Extended with started_at, completed_at, and attempts so that the
+JobLifecycleService can update lifecycle timestamps through the
+repository interface rather than reaching into ORM models directly.
+"""
+
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
@@ -18,3 +23,6 @@ class VideoJob:
     created_at: datetime
     updated_at: datetime
     error_message: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    attempts: int = 0

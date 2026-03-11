@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from threading import Lock
 from time import perf_counter
 from typing import Any
 
-from celery.signals import task_failure, task_postrun, task_prerun, task_retry
+from celery.signals import task_failure, task_postrun, task_prerun, task_retry, worker_process_init
 
 from ytclfr_core.config import get_settings
 from ytclfr_core.logging.logger import configure_logging, get_logger
@@ -18,6 +19,15 @@ from ytclfr_core.monitoring import (
     start_worker_metrics_server,
 )
 from ytclfr_infra.queue.celery_config import build_celery_app
+from ytclfr_worker.tasks.task_support import (
+    get_action_engine,
+    get_ai_client,
+    get_downloader,
+    get_frame_extractor,
+    get_ocr_engine,
+    get_session_factory,
+    get_text_cleaner,
+)
 
 settings = get_settings()
 configure_logging(settings)
@@ -44,6 +54,20 @@ celery_app.conf.imports = (
 celery_app.autodiscover_tasks(packages=["ytclfr_worker.tasks"])
 
 _TASK_STARTED_AT: dict[str, float] = {}
+_TASK_STARTED_AT_LOCK = Lock()
+
+
+@worker_process_init.connect
+def reset_worker_singletons(**_: Any) -> None:
+    """Re-initialize cached adapters after prefork worker initialization."""
+    get_session_factory.cache_clear()
+    get_ocr_engine.cache_clear()
+    get_downloader.cache_clear()
+    get_frame_extractor.cache_clear()
+    get_ai_client.cache_clear()
+    get_action_engine.cache_clear()
+    get_text_cleaner.cache_clear()
+    logger.info("Worker singletons reset after process fork.")
 
 
 @task_prerun.connect
@@ -55,7 +79,8 @@ def track_task_prerun(
     """Track task start time for latency metrics."""
     if task_id is None:
         return
-    _TASK_STARTED_AT[task_id] = perf_counter()
+    with _TASK_STARTED_AT_LOCK:
+        _TASK_STARTED_AT[task_id] = perf_counter()
     task_name = getattr(task, "name", "unknown")
     logger.info(
         "Celery task started.",
@@ -73,7 +98,8 @@ def track_task_postrun(
     """Observe task duration and success/failure state."""
     if task_id is None:
         return
-    started_at = _TASK_STARTED_AT.pop(task_id, None)
+    with _TASK_STARTED_AT_LOCK:
+        started_at = _TASK_STARTED_AT.pop(task_id, None)
     if started_at is None:
         return
     duration_seconds = perf_counter() - started_at

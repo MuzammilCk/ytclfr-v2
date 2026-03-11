@@ -28,6 +28,7 @@ export interface ResultItem {
   title: string;
   description: string;
   tags: string[];
+  action_output?: Record<string, unknown> | null;
 }
 
 /**
@@ -37,4 +38,3 @@ export interface VideoResultResponse {
   video_id: string;
   items: ResultItem[];
 }
-

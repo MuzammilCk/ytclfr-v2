@@ -12,9 +12,8 @@ interface VideoResultPageProps {
   };
 }
 
-const SPOTIFY_PLAYLIST_URL_REGEX = /https?:\/\/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)[^\s]*/gi;
-
 function extractSpotifyPlaylistUrl(response: VideoResultResponse): string | null {
+  const regex = /https?:\/\/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)[^\s]*/i;
   const textBuckets: string[] = [];
   for (const item of response.items) {
     textBuckets.push(item.title);
@@ -23,8 +22,7 @@ function extractSpotifyPlaylistUrl(response: VideoResultResponse): string | null
   }
 
   for (const bucket of textBuckets) {
-    SPOTIFY_PLAYLIST_URL_REGEX.lastIndex = 0;
-    const match = SPOTIFY_PLAYLIST_URL_REGEX.exec(bucket);
+    const match = regex.exec(bucket);
     if (match?.[1]) {
       return `https://open.spotify.com/playlist/${match[1]}`;
     }

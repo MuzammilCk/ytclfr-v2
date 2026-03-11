@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from ytclfr_api.api.deps import get_fetch_knowledge_use_case, get_fetch_video_result_use_case
 from ytclfr_app.use_cases.fetch_knowledge import FetchKnowledgeUseCase
 from ytclfr_app.use_cases.fetch_video_result import FetchVideoResultUseCase
-from ytclfr_contracts.api_models import KnowledgeResponse, VideoResultResponse
+from ytclfr_contracts.api_models import KnowledgeResponse, ResultItem, VideoResultResponse
 from ytclfr_core.logging.logger import get_logger
 
 router = APIRouter()
@@ -50,7 +50,12 @@ def get_result(
         return VideoResultResponse(
             video_id=video_id,
             items=[
-                {"title": item.title, "description": item.description, "tags": item.tags}
+                ResultItem(
+                    title=item.title,
+                    description=item.description,
+                    tags=item.tags,
+                    action_output=item.action_output,
+                )
                 for item in items
             ],
         )

@@ -1,4 +1,13 @@
-"""FastAPI application entrypoint."""
+"""FastAPI application entrypoint.
+
+Changes from original:
+1. CORSMiddleware registered so Next.js frontend can reach the API
+   across origins.  Allowed origins come from CORS_ALLOWED_ORIGINS env
+   (comma-separated list; defaults to "*" in development).
+2. slowapi rate limiter registered on the app instance so the @limiter.limit
+   decorators in jobs.py are honoured.  A 429 handler returns a consistent
+   JSON body.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +16,11 @@ from typing import Awaitable, Callable
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from ytclfr_api.api.v1.router import router as v1_router
 from ytclfr_core.config import get_settings
@@ -39,6 +52,29 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="YTCLFR API", version="0.1.0")
 
+    # ------------------------------------------------------------------
+    # Rate limiter
+    # ------------------------------------------------------------------
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # ------------------------------------------------------------------
+    # CORS
+    # ------------------------------------------------------------------
+    cors_origins = getattr(settings, "cors_allowed_origins", None) or ["*"]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "x-request-id", "Authorization"],
+        expose_headers=["x-request-id"],
+    )
+
+    # ------------------------------------------------------------------
+    # Request logging / metrics middleware
+    # ------------------------------------------------------------------
     @app.middleware("http")
     async def request_logging_middleware(
         request: Request,
@@ -77,7 +113,9 @@ def create_app() -> FastAPI:
             duration_seconds = perf_counter() - start_time
             path = _resolve_request_path(request)
             if settings.metrics_enabled and status_code >= 500:
-                record_api_exception(path=path, exception_type=f"http_{status_code}")
+                record_api_exception(
+                    path=path, exception_type=f"http_{status_code}"
+                )
             if settings.metrics_enabled:
                 record_http_request(
                     method=request.method,
@@ -96,6 +134,9 @@ def create_app() -> FastAPI:
                 },
             )
 
+    # ------------------------------------------------------------------
+    # Metrics endpoint
+    # ------------------------------------------------------------------
     if settings.metrics_enabled:
 
         @app.get("/metrics", include_in_schema=False)

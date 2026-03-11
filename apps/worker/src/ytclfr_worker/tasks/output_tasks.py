@@ -1,18 +1,22 @@
-"""Celery task for final output persistence stage."""
+"""Celery task for final output persistence stage.
 
-import asyncio
+Delegates to ActionEngine for output generation, PersistOutputUseCase for
+idempotent DB persistence, and JobLifecycleService for job completion.
+"""
+
 from typing import Any
 
 from celery import shared_task
 
 from ytclfr_contracts.task_models import GenerateOutputTaskResult, ParseTextTaskResult
 from ytclfr_core.logging.logger import get_logger
+from ytclfr_domain.value_objects.video_status import VideoStatus
 from ytclfr_worker.tasks.task_support import (
     get_action_engine,
-    mark_job_completed,
-    persist_parsed_output,
+    get_job_lifecycle_service,
+    get_persist_output_use_case,
+    run_coroutine_sync,
     retry_or_fail,
-    update_video_status,
 )
 
 logger = get_logger(__name__)
@@ -20,24 +24,31 @@ logger = get_logger(__name__)
 
 @shared_task(bind=True, name="ytclfr.pipeline.generate_output", max_retries=3)
 def generate_output(self, task_payload: dict[str, Any]) -> dict[str, Any]:
-    """Persist parsed content and mark pipeline as completed."""
+    """Persist parsed content, run action generation, and mark job completed."""
     payload = ParseTextTaskResult.model_validate(task_payload)
+    lifecycle = get_job_lifecycle_service()
     try:
-        update_video_status(video_id=payload.video_id, status="GENERATING_OUTPUT")
-        action_output = asyncio.run(
+        lifecycle.update_video_status(payload.video_id, VideoStatus.GENERATING_OUTPUT)
+
+        action_output = run_coroutine_sync(
             get_action_engine().generate(
                 parsed_payload=payload.parsed_payload,
                 video_title=payload.title,
             )
         )
-        enriched_payload = dict(payload.parsed_payload)
-        enriched_payload["action_output"] = action_output
-        persist_parsed_output(
+
+        # Merge action_output into the payload so it is stored in raw_response.
+        enriched_payload = {**payload.parsed_payload, "action_output": action_output}
+
+        # Idempotent upsert - safe on task retries.
+        get_persist_output_use_case().execute(
             job_id=payload.job_id,
             video_id=payload.video_id,
             parsed_payload=enriched_payload,
         )
-        mark_job_completed(job_id=str(payload.job_id))
+
+        lifecycle.mark_completed(payload.job_id)
+
         result = GenerateOutputTaskResult(
             job_id=payload.job_id,
             video_id=payload.video_id,
@@ -52,7 +63,14 @@ def generate_output(self, task_payload: dict[str, Any]) -> dict[str, Any]:
             },
         )
         return result.model_dump(mode="json")
+
     except Exception as exc:
-        logger.exception("Generate output stage failed.", extra={"job_id": str(payload.job_id)})
-        retry_or_fail(task=self, exc=exc, job_id=str(payload.job_id), stage="generate_output")
-        raise
+        logger.exception(
+            "Generate output stage failed.", extra={"job_id": str(payload.job_id)}
+        )
+        retry_or_fail(
+            task=self,
+            exc=exc,
+            job_id=str(payload.job_id),
+            stage="generate_output",
+        )

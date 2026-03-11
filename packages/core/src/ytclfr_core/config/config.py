@@ -36,6 +36,11 @@ class Settings(BaseSettings):
         ge=0.0,
         le=1.0,
     )
+    cors_allowed_origins: list[str] = Field(
+        default_factory=list,
+        alias="CORS_ALLOWED_ORIGINS",
+        description="Comma-separated list of allowed CORS origins.",
+    )
 
     database_url: PostgresDsn = Field(
         validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_DSN")
@@ -147,6 +152,16 @@ class Settings(BaseSettings):
             return None
         normalized = value.strip()
         return normalized or None
+
+    @field_validator("cors_allowed_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | list[str] | None) -> list[str]:
+        """Parse CORS origins from comma-separated string or list."""
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(origin).strip() for origin in value if str(origin).strip()]
+        return [origin.strip() for origin in str(value).split(",") if origin.strip()]
 
     @field_validator("storage_path")
     @classmethod

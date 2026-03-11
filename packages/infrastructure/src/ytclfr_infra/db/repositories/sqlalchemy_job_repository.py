@@ -1,4 +1,10 @@
-"""SQLAlchemy implementation of the job repository contract."""
+"""SQLAlchemy implementation of the job repository contract.
+
+Extended to round-trip started_at, completed_at, and attempts between
+the domain entity and the ORM model. These fields are needed by
+JobLifecycleService to update lifecycle timestamps through the
+repository interface.
+"""
 
 from uuid import UUID
 
@@ -26,6 +32,9 @@ class SQLAlchemyJobRepository(JobRepository):
             video_url=job.video_url,
             status=job.status.value,
             error_message=job.error_message,
+            started_at=job.started_at,
+            completed_at=job.completed_at,
+            attempts=job.attempts,
             created_at=job.created_at,
             updated_at=job.updated_at,
         )
@@ -43,20 +52,12 @@ class SQLAlchemyJobRepository(JobRepository):
                 model = session.get(JobModel, job_id)
                 if model is None:
                     return None
-                return VideoJob(
-                    job_id=model.id,
-                    video_id=model.video_id,
-                    video_url=model.video_url,
-                    status=JobStatus(model.status),
-                    error_message=model.error_message,
-                    created_at=model.created_at,
-                    updated_at=model.updated_at,
-                )
+                return self._to_entity(model)
         except Exception as exc:
             raise RepositoryError("Failed to get job from database.") from exc
 
     def update(self, job: VideoJob) -> VideoJob:
-        """Update an existing job record."""
+        """Update an existing job record with all lifecycle fields."""
         try:
             with session_scope(self._factory) as session:
                 model = session.get(JobModel, job.job_id)
@@ -66,6 +67,35 @@ class SQLAlchemyJobRepository(JobRepository):
                 model.status = job.status.value
                 model.error_message = job.error_message
                 model.updated_at = job.updated_at
+                # Lifecycle timestamp fields — only set if provided.
+                if job.started_at is not None:
+                    model.started_at = job.started_at
+                if job.completed_at is not None:
+                    model.completed_at = job.completed_at
+                if job.attempts > 0:
+                    model.attempts = job.attempts
             return job
+        except RepositoryError:
+            raise
         except Exception as exc:
             raise RepositoryError("Failed to update job in database.") from exc
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _to_entity(model: JobModel) -> VideoJob:
+        """Map an ORM model row to a domain entity."""
+        return VideoJob(
+            job_id=model.id,
+            video_id=model.video_id,
+            video_url=model.video_url,
+            status=JobStatus(model.status),
+            error_message=model.error_message,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            started_at=model.started_at,
+            completed_at=model.completed_at,
+            attempts=int(model.attempts or 0),
+        )

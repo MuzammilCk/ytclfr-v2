@@ -161,7 +161,11 @@ class OpenRouterAIParser:
                     break
                 await self._sleep_before_retry(attempt)
             except Exception as exc:
-                last_error = AIParsingError("OpenRouter request failed.")
+                last_error = AIParsingError(
+                    f"OpenRouter request failed on attempt {attempt}: "
+                    f"{exc.__class__.__name__}: {exc}"
+                )
+                last_error.__cause__ = exc
                 if attempt >= self._max_retries:
                     break
                 await self._sleep_before_retry(attempt)
@@ -283,4 +287,3 @@ class OpenRouterAIParser:
 
 class OpenRouterClient(OpenRouterAIParser):
     """Backward-compatible alias for existing imports."""
-

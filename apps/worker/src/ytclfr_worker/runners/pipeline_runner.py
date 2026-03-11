@@ -10,10 +10,9 @@ from ytclfr_core.utils.time_utils import utc_now
 from ytclfr_domain.entities.knowledge_item import KnowledgeItem
 from ytclfr_domain.value_objects.job_status import JobStatus
 from ytclfr_infra.ai.openrouter_client import OpenRouterClient
-from ytclfr_infra.db import models  # noqa: F401
 from ytclfr_infra.db.repositories.sqlalchemy_job_repository import SQLAlchemyJobRepository
 from ytclfr_infra.db.repositories.sqlalchemy_knowledge_repository import SQLAlchemyKnowledgeRepository
-from ytclfr_infra.db.session import Base, build_engine, build_session_factory
+from ytclfr_infra.db.session import build_engine, build_session_factory
 from ytclfr_infra.execution.command_runner import CommandRunner
 from ytclfr_infra.ocr.ocr_engine import OCRFrameInput, PaddleOCREngine
 from ytclfr_infra.ocr.text_cleaner import TextCleaner
@@ -27,7 +26,6 @@ class PipelineRunner:
     def __init__(self, settings: Settings | None = None) -> None:
         self._settings = settings or get_settings()
         engine = build_engine(self._settings)
-        Base.metadata.create_all(bind=engine)
         session_factory = build_session_factory(engine)
 
         self._job_repo = SQLAlchemyJobRepository(session_factory)

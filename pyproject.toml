@@ -22,6 +22,7 @@ dependencies = [
   "rapidfuzz>=3.9.3",
   "prometheus-client>=0.20.0",
   "sentry-sdk[fastapi]>=2.5.1",
+  "slowapi>=0.1.9",
 ]
 
 [tool.setuptools.packages.find]
