@@ -64,14 +64,66 @@ function Install-WingetPackage {
 }
 
 function Invoke-Cmd {
-    param([string]$Cmd, [string[]]$Args, [string]$WorkDir = $PWD)
+    # NOTE: parameter is named $CmdArgs (not $Args) to avoid collision with
+    # PowerShell's automatic $Args variable, which caused splatting failures.
+    param([string]$Cmd, [string[]]$CmdArgs, [string]$WorkDir = $PWD)
     Push-Location $WorkDir
     try {
-        & $Cmd @Args
-        if ($LASTEXITCODE -ne 0) { throw "Command failed: $Cmd $Args (exit $LASTEXITCODE)" }
+        & $Cmd @CmdArgs
+        if ($LASTEXITCODE -ne 0) { throw "Command failed: $Cmd $CmdArgs (exit $LASTEXITCODE)" }
     } finally {
         Pop-Location
     }
+}
+
+function Get-PythonExe {
+    <#
+    .SYNOPSIS
+        Resolve the Python 3.13 executable path.
+        Returns a hashtable: @{ UseLauncher=$true/$false; Exe="..." }
+    #>
+
+    # 1. Try the Windows Python Launcher (py.exe) — most reliable on Windows.
+    if (Test-Command "py") {
+        $ver = & py -3.13 --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and $ver -match "Python 3\.13") {
+            Write-Info "Resolved Python 3.13 via Windows Launcher (py -3.13): $ver"
+            return @{ UseLauncher = $true; Exe = "py" }
+        }
+    }
+
+    # 2. `python` in PATH.
+    if (Test-Command "python") {
+        $ver = & python --version 2>&1
+        if ($ver -match "Python 3\.13") {
+            Write-Info "Resolved Python 3.13 via PATH: $ver"
+            return @{ UseLauncher = $false; Exe = "python" }
+        }
+    }
+
+    # 3. Well-known install paths (user and system).
+    $candidates = @(
+        "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe",
+        "C:\Python313\python.exe",
+        "C:\Program Files\Python313\python.exe",
+        "$env:ProgramFiles\Python313\python.exe"
+    )
+    foreach ($path in $candidates) {
+        if (Test-Path $path) {
+            $ver = & $path --version 2>&1
+            if ($ver -match "Python 3\.13") {
+                Write-Info "Resolved Python 3.13 at: $path ($ver)"
+                return @{ UseLauncher = $false; Exe = $path }
+            }
+        }
+    }
+
+    # 4. Not found — give actionable instructions.
+    Write-Fail "Python 3.13 not found."
+    Write-Info "Install it with:"
+    Write-Info "  winget install --id Python.Python.3.13 --silent --accept-package-agreements --accept-source-agreements"
+    Write-Info "Then close and reopen this terminal, and re-run the script."
+    throw "Python 3.13 is required but was not found."
 }
 
 # ---------------------------------------------------------------------------
@@ -86,7 +138,7 @@ if (-not (Test-Command "winget")) {
 }
 Write-Ok "winget available"
 
-Install-WingetPackage -PackageId "Python.Python.3.11"      -CommandCheck "python"
+Install-WingetPackage -PackageId "Python.Python.3.13" -CommandCheck "python"
 Install-WingetPackage -PackageId "PostgreSQL.PostgreSQL.16" -CommandCheck "psql"
 Install-WingetPackage -PackageId "Gyan.FFmpeg"              -CommandCheck "ffmpeg"
 Install-WingetPackage -PackageId "yt-dlp.yt-dlp"           -CommandCheck "yt-dlp"
@@ -97,7 +149,7 @@ $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";"
             [System.Environment]::GetEnvironmentVariable("PATH","User")
 
 # Verify critical binaries are now resolvable.
-foreach ($bin in @("python","psql","ffmpeg","yt-dlp","node","npm")) {
+foreach ($bin in @("psql","ffmpeg","yt-dlp","node","npm")) {
     if (Test-Command $bin) {
         $ver = (& $bin --version 2>&1 | Select-Object -First 1)
         Write-Ok "$bin   →   $ver"
@@ -108,7 +160,7 @@ foreach ($bin in @("python","psql","ffmpeg","yt-dlp","node","npm")) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 2 — WSL + Redis (check before installing)
+# Step 2 — WSL + Redis
 # ---------------------------------------------------------------------------
 
 Write-Step "STEP 2 — WSL + Redis"
@@ -118,8 +170,6 @@ if (-not (Get-Command "wsl" -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# --list --quiet outputs distro names; we parse it without launching a shell.
-# Output on some Windows versions contains null bytes — clean those first.
 $wslListRaw = (wsl --list --quiet 2>$null) -join "`n"
 $wslListClean = $wslListRaw -replace "`0", ""
 $ubuntuInstalled = $wslListClean -match "Ubuntu"
@@ -128,7 +178,6 @@ if ($ubuntuInstalled) {
     Write-Skip "WSL Ubuntu already installed"
 } else {
     Write-Info "Ubuntu not found in WSL. Installing (this may take several minutes)..."
-    # --no-launch prevents the interactive shell from opening.
     wsl --install -d Ubuntu --no-launch
     if ($LASTEXITCODE -ne 0) {
         Write-Fail "wsl --install failed. Try running 'wsl --install -d Ubuntu' manually, then re-run this script."
@@ -140,7 +189,6 @@ if ($ubuntuInstalled) {
     exit 0
 }
 
-# Check whether Redis is already reachable on localhost:6379 (TCP connect, no redis-cli needed).
 $redisReachable = $false
 try {
     $tcpClient = New-Object System.Net.Sockets.TcpClient
@@ -153,7 +201,6 @@ if ($redisReachable) {
     Write-Skip "Redis already listening on 127.0.0.1:6379"
 } else {
     Write-Info "Starting Redis inside WSL Ubuntu (non-interactive)..."
-    # Run entirely non-interactively — no shell is launched in the foreground.
     wsl -d Ubuntu --exec bash -c "
         set -e
         if ! command -v redis-server > /dev/null 2>&1; then
@@ -171,7 +218,6 @@ if ($redisReachable) {
         exit 1
     }
 
-    # Confirm Redis is now reachable.
     Start-Sleep -Seconds 2
     try {
         $tcpClient2 = New-Object System.Net.Sockets.TcpClient
@@ -190,7 +236,6 @@ if ($redisReachable) {
 
 Write-Step "STEP 3 — PostgreSQL database and user"
 
-# Prompt for password if not already set in env.
 if (-not $env:YTCLFR_DB_PASSWORD) {
     $secPwd = Read-Host "Enter a strong password for the PostgreSQL 'ytclfr' user" -AsSecureString
     $env:YTCLFR_DB_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
@@ -199,7 +244,6 @@ if (-not $env:YTCLFR_DB_PASSWORD) {
 }
 $dbPassword = $env:YTCLFR_DB_PASSWORD
 
-# Check whether the database already exists (connect as postgres superuser).
 $dbExists = $false
 try {
     $result = & psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='ytclfr'" 2>$null
@@ -208,6 +252,27 @@ try {
 
 if ($dbExists) {
     Write-Skip "Database 'ytclfr' already exists"
+    # Always sync the user password so it matches what was entered above,
+    # keeping the PG user and .env DATABASE_URL in sync on every run.
+    Write-Info "Syncing 'ytclfr' user password..."
+    $syncSql = @"
+DO `$`$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'ytclfr') THEN
+    CREATE USER ytclfr WITH PASSWORD '$dbPassword';
+  ELSE
+    ALTER USER ytclfr WITH PASSWORD '$dbPassword';
+  END IF;
+END
+`$`$;
+GRANT ALL PRIVILEGES ON DATABASE ytclfr TO ytclfr;
+"@
+    $syncSql | & psql -U postgres
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Failed to sync 'ytclfr' password. Check your postgres superuser credentials."
+        exit 1
+    }
+    Write-Ok "Password synced."
 } else {
     Write-Info "Creating PostgreSQL user and database..."
     $sql = @"
@@ -224,6 +289,10 @@ CREATE DATABASE ytclfr OWNER ytclfr;
 GRANT ALL PRIVILEGES ON DATABASE ytclfr TO ytclfr;
 "@
     $sql | & psql -U postgres
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Failed to create database/user. Check your postgres superuser credentials."
+        exit 1
+    }
     Write-Ok "Database 'ytclfr' and user created."
 }
 
@@ -247,37 +316,72 @@ $venvActivate = Join-Path $venvPath "Scripts\Activate.ps1"
 if (Test-Path $venvPython) {
     Write-Skip "Virtual environment already exists at $venvPath"
 } else {
-    Write-Info "Creating virtual environment..."
-    Invoke-Cmd "python" @("-m","venv",$venvPath) -WorkDir $ProjectRoot
-    Write-Ok "Virtual environment created."
+    Write-Info "Resolving Python 3.13..."
+    $py = Get-PythonExe   # throws if not found
+
+    Write-Info "Creating virtual environment with Python 3.13..."
+
+    # FIX: Call Python directly — do NOT use Invoke-Cmd / argument splatting.
+    # Python 3.13's new REPL interceptor breaks when arguments are passed via
+    # PowerShell's @Args splatting, causing Python to drop into an interactive
+    # shell instead of executing -m venv. Direct invocation avoids this.
+    if ($py.UseLauncher) {
+        & py -3.13 -m venv $venvPath
+    } else {
+        & $py.Exe -m venv $venvPath
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "Failed to create virtual environment (exit $LASTEXITCODE)"
+        exit 1
+    }
+
+    # Verify the venv was actually created with Python 3.13.
+    $venvVer = & $venvPython --version 2>&1
+    if ($venvVer -notmatch "Python 3\.13") {
+        Write-Fail "Virtual environment Python version is not 3.13: $venvVer"
+        Write-Info "Delete $venvPath and re-run after confirming Python 3.13 is installed."
+        exit 1
+    }
+    Write-Ok "Virtual environment created: $venvVer"
 }
 
 Write-Info "Upgrading pip..."
-Invoke-Cmd $venvPython @("-m","pip","install","--upgrade","pip","--quiet") -WorkDir $ProjectRoot
+& $venvPython -m pip install --upgrade pip --quiet
+if ($LASTEXITCODE -ne 0) { Write-Fail "pip upgrade failed"; exit 1 }
 
 # Install the project in editable mode.
-# Uses [all] extra to include PaddleOCR + heavy deps.
-# Adjust the extra name to match your pyproject.toml (e.g. [dev], [worker]).
-$extras = "[all]"
-$packageSpec = ".$extras"
-Write-Info "Installing project packages ($packageSpec)..."
+Write-Info "Installing project packages..."
 try {
-    Invoke-Cmd $venvPip @("install","-e",$packageSpec,"--quiet") -WorkDir $ProjectRoot
+    & $venvPip install -e ".[all]" --quiet
+    if ($LASTEXITCODE -ne 0) { throw "pip install [all] failed" }
     Write-Ok "Python packages installed."
 } catch {
-    Write-Info "Retrying without extras (check your pyproject.toml for the correct extra name)..."
-    Invoke-Cmd $venvPip @("install","-e",".","--quiet") -WorkDir $ProjectRoot
+    Write-Info "Retrying without [all] extra..."
+    & $venvPip install -e "." --quiet
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "pip install failed. Check pyproject.toml dependencies."
+        exit 1
+    }
     Write-Ok "Python packages installed (no extras)."
 }
 
 # Verify key packages are importable.
-foreach ($pkg in @("fastapi","celery","alembic","paddleocr","redis","slowapi")) {
+foreach ($pkg in @("fastapi","celery","alembic","redis","slowapi")) {
     $check = & $venvPython -c "import $pkg; print($pkg.__version__)" 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Ok "$pkg $check"
     } else {
         Write-Fail "$pkg not importable — check your pyproject.toml dependencies."
     }
+}
+
+# PaddleOCR check (heavy dep, may not be installed without [all] extra)
+$paddleCheck = & $venvPython -c "import paddleocr; print(paddleocr.__version__)" 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Ok "paddleocr $paddleCheck"
+} else {
+    Write-Info "paddleocr not installed (requires [all] extra or manual pip install paddleocr)."
 }
 
 # ---------------------------------------------------------------------------
@@ -300,7 +404,6 @@ if (Test-Path $envFile) {
     Write-Ok ".env created from .env.example"
 }
 
-# Patch the values we already know.
 $envContent = Get-Content $envFile -Raw
 
 function Set-EnvVar {
@@ -316,7 +419,7 @@ $envContent = Set-EnvVar $envContent "DATABASE_URL"           "postgresql+psycop
 $envContent = Set-EnvVar $envContent "REDIS_URL"              "redis://localhost:6379/0"
 $envContent = Set-EnvVar $envContent "CELERY_BROKER_URL"      "redis://localhost:6379/0"
 $envContent = Set-EnvVar $envContent "CELERY_RESULT_BACKEND"  "redis://localhost:6379/1"
-$envContent = Set-EnvVar $envContent "CORS_ALLOWED_ORIGINS"   "http://localhost:3000"
+$envContent = Set-EnvVar $envContent "CORS_ALLOWED_ORIGINS"   '["http://localhost:3000"]'
 $envContent = Set-EnvVar $envContent "YT_DLP_BIN"             "yt-dlp"
 $envContent = Set-EnvVar $envContent "FFMPEG_BIN"             "ffmpeg"
 
@@ -381,7 +484,6 @@ if (Test-Path $frontendEnv) {
     }
 }
 
-# Patch NEXT_PUBLIC_API_BASE_URL.
 $feEnv = Get-Content $frontendEnv -Raw
 $feEnv = Set-EnvVar $feEnv "NEXT_PUBLIC_API_BASE_URL" "http://localhost:8000"
 Set-Content $frontendEnv $feEnv -NoNewline
@@ -423,7 +525,6 @@ Write-Info '    curl http://localhost:8000/api/v1/health'
 Write-Info '    # Expected: {"status":"ok","checks":{"db":true,"redis":true},...}'
 Write-Info ""
 
-# If the API is already running, run the health check automatically.
 try {
     $response = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/health" `
                                   -Method GET -TimeoutSec 3 -ErrorAction Stop
