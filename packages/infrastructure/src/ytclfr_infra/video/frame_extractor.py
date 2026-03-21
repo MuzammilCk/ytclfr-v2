@@ -109,7 +109,7 @@ class FrameExtractor:
             video = open_video(str(video_path))
             scene_manager = SceneManager()
             scene_manager.add_detector(ContentDetector(threshold=self._scene_threshold))
-            scene_manager.detect_scenes(video=video, show_progress=False)
+            scene_manager.detect_scenes(video, show_progress=False)
             scenes = scene_manager.get_scene_list()
             timestamps = [max(0.0, float(start.get_seconds())) for start, _ in scenes]
             if 0.0 not in timestamps:

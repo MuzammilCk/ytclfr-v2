@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ApiError, processVideo } from "../lib/api";
@@ -44,6 +44,19 @@ export default function HomePage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [recentJobs, setRecentJobs] = useState<{jobId: string, url: string, timestamp: string}[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("ytclfr_recent_jobs");
+      if (stored) {
+        setRecentJobs(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore parse errors safely
+    }
+  }, []);
+
   const canSubmit = useMemo(
     () => youtubeUrl.trim().length > 0 && !isSubmitting,
     [isSubmitting, youtubeUrl],
@@ -62,6 +75,14 @@ export default function HomePage() {
     setIsSubmitting(true);
     try {
       const response = await processVideo(value);
+      
+      const newJob = { jobId: response.job_id, url: value, timestamp: new Date().toISOString() };
+      setRecentJobs((prev) => {
+        const updated = [newJob, ...prev].slice(0, 10);
+        localStorage.setItem("ytclfr_recent_jobs", JSON.stringify(updated));
+        return updated;
+      });
+
       router.push(`/status/${response.job_id}`);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -105,6 +126,33 @@ export default function HomePage() {
       </form>
 
       {error ? <p className="feedback feedback-error">{error}</p> : null}
+
+      {recentJobs.length > 0 && (
+        <div style={{ marginTop: "3rem", width: "100%", textAlign: "left" }}>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>Your Recent Videos</h2>
+          <ul style={{ display: "flex", flexDirection: "column", gap: "0.75rem", listStyle: "none", padding: 0 }}>
+            {recentJobs.map((job) => (
+               <li key={job.jobId} style={{ background: "rgba(255, 255, 255, 0.05)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.7 }}>
+                   {new Date(job.timestamp).toLocaleString()}
+                 </p>
+                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
+                   <span style={{ fontFamily: "monospace", fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>
+                     {job.url}
+                   </span>
+                   <button 
+                     className="button button-primary" 
+                     onClick={(e) => { e.preventDefault(); router.push(`/status/${job.jobId}`); }}
+                     style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
+                   >
+                     View Status
+                   </button>
+                 </div>
+               </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }

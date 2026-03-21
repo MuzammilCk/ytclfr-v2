@@ -51,7 +51,7 @@ celery_app.conf.imports = (
     "ytclfr_worker.tasks.ai_tasks",
     "ytclfr_worker.tasks.output_tasks",
 )
-celery_app.autodiscover_tasks(packages=["ytclfr_worker.tasks"])
+
 
 _TASK_STARTED_AT: dict[str, float] = {}
 _TASK_STARTED_AT_LOCK = Lock()

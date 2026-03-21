@@ -23,6 +23,10 @@ dependencies = [
   "prometheus-client>=0.20.0",
   "sentry-sdk[fastapi]>=2.5.1",
   "slowapi>=0.1.9",
+  # OCR dependencies — required by PaddleOCREngine in packages/infrastructure
+  # CPU-only build. For GPU support replace with: paddlepaddle-gpu>=2.5.0
+  "paddlepaddle>=2.5.0",
+  "paddleocr>=2.6.0",
 ]
 
 [tool.setuptools.packages.find]

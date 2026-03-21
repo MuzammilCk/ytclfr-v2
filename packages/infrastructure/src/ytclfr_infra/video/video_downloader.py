@@ -54,6 +54,8 @@ class YouTubeDownloader:
         stdout = self._run_command(
             [
                 self._yt_dlp_binary,
+                "--cookies-from-browser",
+                "brave",
                 "--no-playlist",
                 "--merge-output-format",
                 "mp4",
@@ -90,6 +92,8 @@ class YouTubeDownloader:
         stdout = self._run_command(
             [
                 self._yt_dlp_binary,
+                "--cookies-from-browser",
+                "brave",
                 "--no-playlist",
                 "--skip-download",
                 "--dump-single-json",
