@@ -28,6 +28,9 @@ class YouTubeDownloader:
         yt_dlp_binary: str = "yt-dlp",
         max_duration_seconds: int = 3600,
         timeout_seconds: int = 1800,
+        cookies_from_browser: str | None = "brave",
+        cookie_file: Path | None = None,
+        retry_without_cookies: bool = True,
     ) -> None:
         if max_duration_seconds <= 0:
             raise VideoProcessingError("max_duration_seconds must be greater than zero.")
@@ -36,6 +39,9 @@ class YouTubeDownloader:
         self._yt_dlp_binary = yt_dlp_binary
         self._max_duration_seconds = max_duration_seconds
         self._timeout_seconds = timeout_seconds
+        self._cookies_from_browser = cookies_from_browser.strip() if cookies_from_browser else None
+        self._cookie_file = Path(cookie_file) if cookie_file is not None else None
+        self._retry_without_cookies = retry_without_cookies
 
     def download(self, video_url: str, output_dir: Path) -> DownloadResult:
         """Validate URL, enforce duration limits, download video, and return artifact metadata."""
@@ -51,11 +57,9 @@ class YouTubeDownloader:
 
         output_dir.mkdir(parents=True, exist_ok=True)
         output_template = output_dir / "%(id)s.%(ext)s"
-        stdout = self._run_command(
+        stdout = self._run_yt_dlp_command(
             [
                 self._yt_dlp_binary,
-                "--cookies-from-browser",
-                "brave",
                 "--no-playlist",
                 "--merge-output-format",
                 "mp4",
@@ -89,11 +93,9 @@ class YouTubeDownloader:
 
     def _extract_metadata(self, video_url: str) -> dict:
         """Fetch metadata from yt-dlp without downloading media."""
-        stdout = self._run_command(
+        stdout = self._run_yt_dlp_command(
             [
                 self._yt_dlp_binary,
-                "--cookies-from-browser",
-                "brave",
                 "--no-playlist",
                 "--skip-download",
                 "--dump-single-json",
@@ -108,6 +110,41 @@ class YouTubeDownloader:
             return parsed
         except json.JSONDecodeError as exc:
             raise VideoProcessingError("Failed to parse yt-dlp metadata JSON output.") from exc
+
+    def _run_yt_dlp_command(self, command: list[str], timeout_seconds: int) -> str:
+        """Run yt-dlp with configured authentication and fallback on cookie copy failures."""
+        auth_args = self._build_auth_args()
+        if not auth_args:
+            return self._run_command(command, timeout_seconds=timeout_seconds)
+
+        try:
+            return self._run_command(
+                self._inject_auth_args(command=command, auth_args=auth_args),
+                timeout_seconds=timeout_seconds,
+            )
+        except VideoProcessingError as exc:
+            if not self._should_retry_without_cookies(exc):
+                raise
+            return self._run_command(command, timeout_seconds=timeout_seconds)
+
+    def _build_auth_args(self) -> list[str]:
+        """Build optional yt-dlp cookie arguments from configuration."""
+        if self._cookie_file is not None:
+            return ["--cookies", str(self._cookie_file)]
+        if self._cookies_from_browser is not None:
+            return ["--cookies-from-browser", self._cookies_from_browser]
+        return []
+
+    def _inject_auth_args(self, command: list[str], auth_args: list[str]) -> list[str]:
+        """Insert authentication args immediately after the yt-dlp binary."""
+        return [command[0], *auth_args, *command[1:]]
+
+    def _should_retry_without_cookies(self, exc: VideoProcessingError) -> bool:
+        """Return whether auth-specific failure should retry without cookie arguments."""
+        if not self._retry_without_cookies:
+            return False
+        message = str(exc).lower()
+        return "could not copy" in message and "cookie database" in message
 
     def _resolve_downloaded_path(self, output_dir: Path, stdout: str, video_id: str) -> Path | None:
         """Resolve final downloaded file path from command output or directory scan."""

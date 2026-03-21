@@ -60,6 +60,15 @@ class Settings(BaseSettings):
     celery_task_always_eager: bool = Field(default=False, alias="CELERY_TASK_ALWAYS_EAGER")
 
     yt_dlp_bin: str = Field(default="yt-dlp", alias="YT_DLP_BIN")
+    yt_dlp_cookies_from_browser: str | None = Field(
+        default="brave",
+        alias="YT_DLP_COOKIES_FROM_BROWSER",
+    )
+    yt_dlp_cookie_file: Path | None = Field(default=None, alias="YT_DLP_COOKIE_FILE")
+    yt_dlp_retry_without_cookies: bool = Field(
+        default=True,
+        alias="YT_DLP_RETRY_WITHOUT_COOKIES",
+    )
     ffmpeg_bin: str = Field(default="ffmpeg", alias="FFMPEG_BIN")
     frame_extraction_fps: int = Field(default=1, alias="FRAME_EXTRACTION_FPS", ge=1, le=120)
     ocr_language: str = Field(default="en", alias="OCR_LANGUAGE", min_length=2, max_length=8)
@@ -170,6 +179,26 @@ class Settings(BaseSettings):
         if not str(value).strip():
             raise ValueError("STORAGE_PATH cannot be empty.")
         return value
+
+    @field_validator("yt_dlp_cookies_from_browser")
+    @classmethod
+    def normalize_yt_dlp_cookies_from_browser(cls, value: str | None) -> str | None:
+        """Treat blank browser cookie source as disabled."""
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        return normalized or None
+
+    @field_validator("yt_dlp_cookie_file")
+    @classmethod
+    def normalize_yt_dlp_cookie_file(cls, value: Path | None) -> Path | None:
+        """Treat blank cookie file values as disabled."""
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        if not normalized:
+            return None
+        return Path(normalized)
 
     @field_validator("ocr_language")
     @classmethod
