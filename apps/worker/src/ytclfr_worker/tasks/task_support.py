@@ -77,6 +77,9 @@ def get_downloader() -> YouTubeDownloader:
     return YouTubeDownloader(
         yt_dlp_binary=settings.yt_dlp_bin,
         max_duration_seconds=settings.max_video_duration,
+        cookies_from_browser=settings.yt_dlp_cookies_from_browser,
+        cookie_file=settings.yt_dlp_cookie_file,
+        retry_without_cookies=settings.yt_dlp_retry_without_cookies,
     )
 
 
