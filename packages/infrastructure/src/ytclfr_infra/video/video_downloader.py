@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -144,7 +145,11 @@ class YouTubeDownloader:
         if not self._retry_without_cookies:
             return False
         message = str(exc).lower()
-        return "could not copy" in message and "cookie database" in message
+        if "could not copy" in message and "cookie database" in message:
+            return True
+        if "permission denied" in message:
+            return True
+        return False
 
     def _resolve_downloaded_path(self, output_dir: Path, stdout: str, video_id: str) -> Path | None:
         """Resolve final downloaded file path from command output or directory scan."""
@@ -198,6 +203,7 @@ class YouTubeDownloader:
                 text=True,
                 timeout=timeout_seconds,
                 check=False,
+                cwd=tempfile.gettempdir(),
             )
         except FileNotFoundError as exc:
             raise VideoProcessingError(

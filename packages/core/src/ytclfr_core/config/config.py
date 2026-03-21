@@ -175,10 +175,10 @@ class Settings(BaseSettings):
     @field_validator("storage_path")
     @classmethod
     def validate_storage_path(cls, value: Path) -> Path:
-        """Ensure storage path is non-empty."""
+        """Ensure storage path is non-empty and resolve to absolute."""
         if not str(value).strip():
             raise ValueError("STORAGE_PATH cannot be empty.")
-        return value
+        return value.resolve()
 
     @field_validator("yt_dlp_cookies_from_browser")
     @classmethod

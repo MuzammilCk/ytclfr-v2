@@ -23,6 +23,7 @@ def test_extract_metadata_retries_without_browser_cookies_on_copy_error(
         text: bool,
         timeout: int,
         check: bool,
+        cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         _ = (capture_output, text, timeout, check)
         observed_commands.append(command)
@@ -76,6 +77,7 @@ def test_download_retries_without_browser_cookies_on_copy_error(
         text: bool,
         timeout: int,
         check: bool,
+        cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         _ = (capture_output, text, timeout, check)
         observed_commands.append(command)
@@ -95,7 +97,7 @@ def test_download_retries_without_browser_cookies_on_copy_error(
         return subprocess.CompletedProcess(
             args=command,
             returncode=0,
-            stdout=f"{target_path}\n",
+            stdout=f"{target_path}\\n",
             stderr="",
         )
 
@@ -126,6 +128,7 @@ def test_extract_metadata_preserves_cookie_copy_error_when_fallback_disabled(
         text: bool,
         timeout: int,
         check: bool,
+        cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         _ = (command, capture_output, text, timeout, check)
         return subprocess.CompletedProcess(
