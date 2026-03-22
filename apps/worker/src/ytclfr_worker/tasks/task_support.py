@@ -349,6 +349,17 @@ def retry_or_fail(task: Task, exc: Exception, job_id: str, stage: str) -> None:
             logger.exception("Failed to update job failure status after exhausting retries.")
         raise exc
 
-    countdown = min(300, 2 ** (current_retries + 1))
+    error_str = str(exc).lower()
+    is_rate_limit = (
+        "429" in error_str
+        or "too many requests" in error_str
+        or "rate-limited" in error_str
+        or "rate limit" in error_str
+    )
+    is_bot_detection = "sign in to confirm" in error_str or "bot detection" in error_str
+    if is_rate_limit or is_bot_detection:
+        countdown = 600
+    else:
+        countdown = min(300, 2 ** (current_retries + 1))
     record_task_retry(task_name=task_name, stage=stage)
     raise task.retry(exc=exc, countdown=countdown)
