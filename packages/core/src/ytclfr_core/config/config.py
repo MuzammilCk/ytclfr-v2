@@ -93,6 +93,11 @@ class Settings(BaseSettings):
         alias="YT_DLP_EXTRACTOR_ARGS",
         description="Extractor args passed to yt-dlp via --extractor-args youtube:VALUE.",
     )
+    yt_dlp_js_runtimes: str | None = Field(
+        default="node",
+        alias="YT_DLP_JS_RUNTIMES",
+        description="JavaScript runtime for yt-dlp EJS challenge solving (e.g. node, deno, bun).",
+    )
     ffmpeg_bin: str = Field(default="ffmpeg", alias="FFMPEG_BIN")
     frame_extraction_fps: int = Field(default=1, alias="FRAME_EXTRACTION_FPS", ge=1, le=120)
     ocr_language: str = Field(default="en", alias="OCR_LANGUAGE", min_length=2, max_length=8)
@@ -240,6 +245,15 @@ class Settings(BaseSettings):
         if value is None:
             return None
         normalized = value.strip()
+        return normalized or None
+
+    @field_validator("yt_dlp_js_runtimes")
+    @classmethod
+    def normalize_yt_dlp_js_runtimes(cls, value: str | None) -> str | None:
+        """Treat blank JS runtimes as disabled."""
+        if value is None:
+            return None
+        normalized = value.strip().lower()
         return normalized or None
 
     @field_validator("ocr_language")

@@ -36,6 +36,7 @@ class YouTubeDownloader:
         sleep_interval: int = 2,
         max_sleep_interval: int = 5,
         extractor_args: str | None = "player_client=tv",
+        js_runtimes: str | None = "node",
     ) -> None:
         if max_duration_seconds <= 0:
             raise VideoProcessingError("max_duration_seconds must be greater than zero.")
@@ -51,6 +52,7 @@ class YouTubeDownloader:
         self._sleep_interval = max(0, sleep_interval)
         self._max_sleep_interval = max(0, max_sleep_interval)
         self._extractor_args = extractor_args.strip() if extractor_args else None
+        self._js_runtimes = js_runtimes.strip() if js_runtimes else None
 
     def download(self, video_url: str, output_dir: Path) -> DownloadResult:
         """Validate URL, enforce duration limits, download video, and return artifact metadata."""
@@ -142,6 +144,8 @@ class YouTubeDownloader:
     def _inject_global_args(self, command: list[str]) -> list[str]:
         """Inject extractor args and rate-limit sleep intervals after the binary."""
         extra: list[str] = []
+        if self._js_runtimes:
+            extra.extend(["--js-runtimes", self._js_runtimes])
         if self._extractor_args:
             extra.extend(["--extractor-args", f"youtube:{self._extractor_args}"])
         if self._sleep_interval > 0:

@@ -1,5 +1,6 @@
 """OCR engine implementation using PaddleOCR."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -39,6 +40,9 @@ class PaddleOCREngine:
         if min_confidence < 0.0 or min_confidence > 1.0:
             raise OCRProcessingError("OCR min_confidence must be between 0.0 and 1.0.")
         try:
+            # Disable PIR executor to work around oneDNN crash in PaddlePaddle >=3.3
+            # (ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute])
+            os.environ.setdefault("FLAGS_enable_pir_in_executor", "0")
             from paddleocr import PaddleOCR
         except ModuleNotFoundError as exc:
             raise OCRProcessingError("PaddleOCR is not installed.") from exc

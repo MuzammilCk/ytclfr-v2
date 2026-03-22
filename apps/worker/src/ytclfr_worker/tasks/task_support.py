@@ -84,6 +84,7 @@ def get_downloader() -> YouTubeDownloader:
         sleep_interval=settings.yt_dlp_sleep_interval,
         max_sleep_interval=settings.yt_dlp_max_sleep_interval,
         extractor_args=settings.yt_dlp_extractor_args,
+        js_runtimes=settings.yt_dlp_js_runtimes,
     )
 
 

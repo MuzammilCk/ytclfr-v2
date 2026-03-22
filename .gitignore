@@ -11,3 +11,6 @@ node_modules/
 build/
 dist/
 *.egg-info/
+storage/
+cookies.txt
+cookies*.txt
