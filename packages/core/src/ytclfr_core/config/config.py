@@ -69,6 +69,30 @@ class Settings(BaseSettings):
         default=True,
         alias="YT_DLP_RETRY_WITHOUT_COOKIES",
     )
+    yt_dlp_player_client: str | None = Field(
+        default="tv",
+        alias="YT_DLP_PLAYER_CLIENT",
+        description="Force yt-dlp player client to avoid JS runtime requirement.",
+    )
+    yt_dlp_sleep_interval: int = Field(
+        default=2,
+        alias="YT_DLP_SLEEP_INTERVAL",
+        ge=0,
+        le=60,
+        description="Seconds to sleep between yt-dlp requests to avoid rate limiting.",
+    )
+    yt_dlp_max_sleep_interval: int = Field(
+        default=5,
+        alias="YT_DLP_MAX_SLEEP_INTERVAL",
+        ge=0,
+        le=120,
+        description="Max seconds to sleep between yt-dlp requests.",
+    )
+    yt_dlp_extractor_args: str | None = Field(
+        default="player_client=tv",
+        alias="YT_DLP_EXTRACTOR_ARGS",
+        description="Extractor args passed to yt-dlp via --extractor-args youtube:VALUE.",
+    )
     ffmpeg_bin: str = Field(default="ffmpeg", alias="FFMPEG_BIN")
     frame_extraction_fps: int = Field(default=1, alias="FRAME_EXTRACTION_FPS", ge=1, le=120)
     ocr_language: str = Field(default="en", alias="OCR_LANGUAGE", min_length=2, max_length=8)
@@ -199,6 +223,24 @@ class Settings(BaseSettings):
         if not normalized:
             return None
         return Path(normalized)
+
+    @field_validator("yt_dlp_player_client")
+    @classmethod
+    def normalize_yt_dlp_player_client(cls, value: str | None) -> str | None:
+        """Treat blank player client as disabled."""
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        return normalized or None
+
+    @field_validator("yt_dlp_extractor_args")
+    @classmethod
+    def normalize_yt_dlp_extractor_args(cls, value: str | None) -> str | None:
+        """Treat blank extractor args as disabled."""
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     @field_validator("ocr_language")
     @classmethod

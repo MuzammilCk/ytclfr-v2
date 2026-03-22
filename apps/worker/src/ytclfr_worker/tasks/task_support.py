@@ -80,6 +80,10 @@ def get_downloader() -> YouTubeDownloader:
         cookies_from_browser=settings.yt_dlp_cookies_from_browser,
         cookie_file=settings.yt_dlp_cookie_file,
         retry_without_cookies=settings.yt_dlp_retry_without_cookies,
+        player_client=settings.yt_dlp_player_client,
+        sleep_interval=settings.yt_dlp_sleep_interval,
+        max_sleep_interval=settings.yt_dlp_max_sleep_interval,
+        extractor_args=settings.yt_dlp_extractor_args,
     )
 
 

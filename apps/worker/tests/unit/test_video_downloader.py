@@ -25,7 +25,7 @@ def test_extract_metadata_retries_without_browser_cookies_on_copy_error(
         check: bool,
         cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        _ = (capture_output, text, timeout, check)
+        _ = (capture_output, text, timeout, check, cwd)
         observed_commands.append(command)
         if "--cookies-from-browser" in command:
             return subprocess.CompletedProcess(
@@ -50,7 +50,7 @@ def test_extract_metadata_retries_without_browser_cookies_on_copy_error(
 
     assert metadata["id"] == "abc123"
     assert len(observed_commands) == 2
-    assert observed_commands[0][1:3] == ["--cookies-from-browser", "brave"]
+    assert "--cookies-from-browser" in observed_commands[0]
     assert "--cookies-from-browser" not in observed_commands[1]
 
 
@@ -79,7 +79,7 @@ def test_download_retries_without_browser_cookies_on_copy_error(
         check: bool,
         cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        _ = (capture_output, text, timeout, check)
+        _ = (capture_output, text, timeout, check, cwd)
         observed_commands.append(command)
         if "--cookies-from-browser" in command:
             return subprocess.CompletedProcess(
@@ -97,7 +97,7 @@ def test_download_retries_without_browser_cookies_on_copy_error(
         return subprocess.CompletedProcess(
             args=command,
             returncode=0,
-            stdout=f"{target_path}\\n",
+            stdout=f"{target_path}\n",
             stderr="",
         )
 
@@ -111,7 +111,7 @@ def test_download_retries_without_browser_cookies_on_copy_error(
     assert result.video_path == target_path
     assert result.title == "Demo"
     assert len(observed_commands) == 2
-    assert observed_commands[0][1:3] == ["--cookies-from-browser", "brave"]
+    assert "--cookies-from-browser" in observed_commands[0]
     assert "--cookies-from-browser" not in observed_commands[1]
 
 
@@ -130,7 +130,7 @@ def test_extract_metadata_preserves_cookie_copy_error_when_fallback_disabled(
         check: bool,
         cwd: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        _ = (command, capture_output, text, timeout, check)
+        _ = (command, capture_output, text, timeout, check, cwd)
         return subprocess.CompletedProcess(
             args=command,
             returncode=1,
@@ -142,3 +142,84 @@ def test_extract_metadata_preserves_cookie_copy_error_when_fallback_disabled(
 
     with pytest.raises(VideoProcessingError, match="Could not copy Chrome cookie database"):
         downloader._extract_metadata("https://www.youtube.com/watch?v=abc123")
+
+
+def test_429_rate_limit_classified_as_retryable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """HTTP 429 from YouTube should raise a retryable error, not a network failure."""
+    downloader = YouTubeDownloader(
+        cookies_from_browser=None,
+        retry_without_cookies=False,
+        extractor_args=None,
+        sleep_interval=0,
+        max_sleep_interval=0,
+    )
+
+    def fake_run(
+        command: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        timeout: int,
+        check: bool,
+        cwd: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        _ = (command, capture_output, text, timeout, check, cwd)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=1,
+            stdout="",
+            stderr=(
+                "ERROR: unable to download webpage: HTTP Error 429: Too Many Requests\n"
+                "Sign in to confirm you're not a bot"
+            ),
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(VideoProcessingError, match="rate-limited or bot-detected"):
+        downloader._extract_metadata("https://www.youtube.com/watch?v=abc123")
+
+
+def test_global_args_injected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Extractor args and sleep intervals should appear in the command."""
+    downloader = YouTubeDownloader(
+        cookies_from_browser=None,
+        retry_without_cookies=False,
+        extractor_args="player_client=tv",
+        sleep_interval=2,
+        max_sleep_interval=5,
+    )
+    observed_commands: list[list[str]] = []
+
+    def fake_run(
+        command: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        timeout: int,
+        check: bool,
+        cwd: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        _ = (capture_output, text, timeout, check, cwd)
+        observed_commands.append(command)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=0,
+            stdout='{"id":"abc123","title":"Demo","duration":90}',
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    downloader._extract_metadata("https://www.youtube.com/watch?v=abc123")
+
+    cmd = observed_commands[0]
+    assert "--extractor-args" in cmd
+    ea_idx = cmd.index("--extractor-args")
+    assert cmd[ea_idx + 1] == "youtube:player_client=tv"
+    assert "--sleep-interval" in cmd
+    assert "--max-sleep-interval" in cmd

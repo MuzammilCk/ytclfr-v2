@@ -32,6 +32,10 @@ class YouTubeDownloader:
         cookies_from_browser: str | None = "brave",
         cookie_file: Path | None = None,
         retry_without_cookies: bool = True,
+        player_client: str | None = "tv",
+        sleep_interval: int = 2,
+        max_sleep_interval: int = 5,
+        extractor_args: str | None = "player_client=tv",
     ) -> None:
         if max_duration_seconds <= 0:
             raise VideoProcessingError("max_duration_seconds must be greater than zero.")
@@ -43,6 +47,10 @@ class YouTubeDownloader:
         self._cookies_from_browser = cookies_from_browser.strip() if cookies_from_browser else None
         self._cookie_file = Path(cookie_file) if cookie_file is not None else None
         self._retry_without_cookies = retry_without_cookies
+        self._player_client = player_client.strip() if player_client else None
+        self._sleep_interval = max(0, sleep_interval)
+        self._max_sleep_interval = max(0, max_sleep_interval)
+        self._extractor_args = extractor_args.strip() if extractor_args else None
 
     def download(self, video_url: str, output_dir: Path) -> DownloadResult:
         """Validate URL, enforce duration limits, download video, and return artifact metadata."""
@@ -114,6 +122,9 @@ class YouTubeDownloader:
 
     def _run_yt_dlp_command(self, command: list[str], timeout_seconds: int) -> str:
         """Run yt-dlp with configured authentication and fallback on cookie copy failures."""
+        # Inject global yt-dlp args (extractor args, sleep intervals)
+        command = self._inject_global_args(command)
+
         auth_args = self._build_auth_args()
         if not auth_args:
             return self._run_command(command, timeout_seconds=timeout_seconds)
@@ -127,6 +138,19 @@ class YouTubeDownloader:
             if not self._should_retry_without_cookies(exc):
                 raise
             return self._run_command(command, timeout_seconds=timeout_seconds)
+
+    def _inject_global_args(self, command: list[str]) -> list[str]:
+        """Inject extractor args and rate-limit sleep intervals after the binary."""
+        extra: list[str] = []
+        if self._extractor_args:
+            extra.extend(["--extractor-args", f"youtube:{self._extractor_args}"])
+        if self._sleep_interval > 0:
+            extra.extend(["--sleep-interval", str(self._sleep_interval)])
+        if self._max_sleep_interval > 0:
+            extra.extend(["--max-sleep-interval", str(self._max_sleep_interval)])
+        if not extra:
+            return command
+        return [command[0], *extra, *command[1:]]
 
     def _build_auth_args(self) -> list[str]:
         """Build optional yt-dlp cookie arguments from configuration."""
@@ -217,18 +241,42 @@ class YouTubeDownloader:
         if completed.returncode != 0:
             stderr = (completed.stderr or "").strip()
             lower_error = stderr.lower()
-            if any(
-                token in lower_error
-                for token in [
-                    "timed out",
-                    "unable to download webpage",
-                    "network is unreachable",
-                    "connection refused",
-                    "temporary failure",
-                    "name or service not known",
-                ]
-            ):
+
+            # Rate-limiting / bot-detection: these are transient and should be
+            # retried by the Celery task with backoff — NOT classified as a
+            # permanent "Network failure".
+            rate_limit_tokens = [
+                "http error 429",
+                "too many requests",
+                "sign in to confirm",
+                "confirm you're not a bot",
+                "confirm you are not a bot",
+            ]
+            if any(token in lower_error for token in rate_limit_tokens):
+                raise VideoProcessingError(
+                    f"YouTube rate-limited or bot-detected (retryable): {stderr}"
+                )
+
+            # True network failures (DNS, connection refused, etc.)
+            network_tokens = [
+                "timed out",
+                "network is unreachable",
+                "connection refused",
+                "temporary failure",
+                "name or service not known",
+            ]
+            if any(token in lower_error for token in network_tokens):
                 raise VideoProcessingError(f"Network failure while running yt-dlp: {stderr}")
+
+            # "unable to download webpage" can be 429 OR a genuine network
+            # issue. If it co-occurs with rate-limit markers we already caught
+            # it above, so reaching here means it is a standalone transient
+            # network error that should still be retried by celery.
+            if "unable to download webpage" in lower_error:
+                raise VideoProcessingError(
+                    f"yt-dlp could not fetch video page (retryable): {stderr}"
+                )
+
             if any(
                 token in lower_error
                 for token in [
