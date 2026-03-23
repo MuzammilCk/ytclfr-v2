@@ -71,14 +71,18 @@ class PaddleOCREngine:
         return self.extract_from_frames(frame_inputs)
 
     def extract_from_frames(self, frames: list[OCRFrameInput]) -> list[OCRLine]:
-        """Run OCR for timestamped frame images using fixed-size batches."""
+        """Run OCR for timestamped frame images using fixed-size batches.
+
+        Individual frame failures are logged and skipped so that one
+        corrupted image does not block the entire pipeline.
+        """
         if not frames:
             return []
         normalized_frames: list[OCRFrameInput] = []
         for frame in frames:
             image_path = Path(frame.image_path)
             if not image_path.exists() or not image_path.is_file():
-                raise OCRProcessingError(f"Frame image does not exist: {image_path}")
+                continue  # skip missing frames instead of crashing
             normalized_frames.append(
                 OCRFrameInput(
                     image_path=image_path,
@@ -87,16 +91,22 @@ class PaddleOCREngine:
             )
 
         lines: list[OCRLine] = []
-        try:
-            for batch_start in range(0, len(normalized_frames), self._batch_size):
-                batch = normalized_frames[batch_start : batch_start + self._batch_size]
-                for frame in batch:
+        skipped = 0
+        for batch_start in range(0, len(normalized_frames), self._batch_size):
+            batch = normalized_frames[batch_start : batch_start + self._batch_size]
+            for frame in batch:
+                try:
                     lines.extend(self._extract_one(frame))
-            return lines
-        except OCRProcessingError:
-            raise
-        except Exception as exc:
-            raise OCRProcessingError("PaddleOCR extraction failed.") from exc
+                except Exception:
+                    skipped += 1
+                    continue  # skip this frame, process the rest
+
+        if not lines and normalized_frames:
+            raise OCRProcessingError(
+                f"PaddleOCR failed on all {len(normalized_frames)} frames "
+                f"({skipped} skipped)."
+            )
+        return lines
 
     def _extract_one(self, frame: OCRFrameInput) -> list[OCRLine]:
         """Run OCR for one image and map PaddleOCR output into typed rows."""

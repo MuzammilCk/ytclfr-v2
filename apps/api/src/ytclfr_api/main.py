@@ -18,9 +18,10 @@ from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+
+from ytclfr_api.api.limiter import limiter
 
 from ytclfr_api.api.v1.router import router as v1_router
 from ytclfr_core.config import get_settings
@@ -55,7 +56,6 @@ def create_app() -> FastAPI:
     # ------------------------------------------------------------------
     # Rate limiter
     # ------------------------------------------------------------------
-    limiter = Limiter(key_func=get_remote_address)
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

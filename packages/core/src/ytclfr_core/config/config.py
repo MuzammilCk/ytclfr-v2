@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     yt_dlp_bin: str = Field(default="yt-dlp", alias="YT_DLP_BIN")
     yt_dlp_cookies_from_browser: str | None = Field(
-        default="brave",
+        default=None,
         alias="YT_DLP_COOKIES_FROM_BROWSER",
     )
     yt_dlp_cookie_file: Path | None = Field(default=None, alias="YT_DLP_COOKIE_FILE")
@@ -194,12 +194,24 @@ class Settings(BaseSettings):
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: str | list[str] | None) -> list[str]:
-        """Parse CORS origins from comma-separated string or list."""
+        """Parse CORS origins from JSON array, comma-separated string, or list."""
         if value is None:
             return []
         if isinstance(value, list):
-            return [str(origin).strip() for origin in value if str(origin).strip()]
-        return [origin.strip() for origin in str(value).split(",") if origin.strip()]
+            return [str(o).strip() for o in value if str(o).strip()]
+        raw = str(value).strip()
+        if not raw:
+            return []
+        # Handle JSON array format: '["http://localhost:3000","http://localhost:3001"]'
+        if raw.startswith("["):
+            import json
+            try:
+                parsed = json.loads(raw)
+                return [str(o).strip() for o in parsed if str(o).strip()]
+            except json.JSONDecodeError:
+                pass
+        # Fallback: comma-separated
+        return [o.strip() for o in raw.split(",") if o.strip()]
 
     @field_validator("storage_path")
     @classmethod

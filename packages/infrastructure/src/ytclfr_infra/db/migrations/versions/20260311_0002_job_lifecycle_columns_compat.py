@@ -23,21 +23,18 @@ def upgrade() -> None:
     bootstrapped before strict Alembic-only schema management and may be missing
     lifecycle columns used by the worker.
     """
-    op.execute(
-        "ALTER TABLE jobs "
-        "ADD COLUMN IF NOT EXISTS started_at TIMESTAMP WITH TIME ZONE NULL"
-    )
-    op.execute(
-        "ALTER TABLE jobs "
-        "ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE NULL"
-    )
-    op.execute(
-        "ALTER TABLE jobs "
-        "ADD COLUMN IF NOT EXISTS attempts INTEGER NOT NULL DEFAULT 0"
-    )
-    op.execute("UPDATE jobs SET attempts = 0 WHERE attempts IS NULL")
-    op.execute("ALTER TABLE jobs ALTER COLUMN attempts SET DEFAULT 0")
-    op.execute("ALTER TABLE jobs ALTER COLUMN attempts SET NOT NULL")
+    import sqlalchemy as sa
+
+    connection = op.get_bind()
+    inspector = sa.inspect(connection)
+    existing = {c["name"] for c in inspector.get_columns("jobs")}
+
+    if "started_at" not in existing:
+        op.add_column("jobs", sa.Column("started_at", sa.DateTime(timezone=True), nullable=True))
+    if "completed_at" not in existing:
+        op.add_column("jobs", sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True))
+    if "attempts" not in existing:
+        op.add_column("jobs", sa.Column("attempts", sa.Integer(), server_default=sa.text("0"), nullable=False))
 
 
 def downgrade() -> None:

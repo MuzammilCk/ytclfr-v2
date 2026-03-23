@@ -13,8 +13,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from ytclfr_api.api.limiter import limiter
 
 from ytclfr_api.api.deps import get_job_repository, get_submit_job_use_case
 from ytclfr_app.use_cases.submit_job import SubmitJobUseCase
@@ -31,8 +30,7 @@ from ytclfr_domain.repositories.job_repository import JobRepository
 router = APIRouter()
 logger = get_logger(__name__)
 
-# Limiter instance — registered on the app in main.py.
-_limiter = Limiter(key_func=get_remote_address)
+
 
 
 @router.post(
@@ -40,7 +38,7 @@ _limiter = Limiter(key_func=get_remote_address)
     response_model=ProcessVideoResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-@_limiter.limit("10/minute")
+@limiter.limit("10/minute")
 def process_video(
     request: Request,
     payload: ProcessVideoRequest,
@@ -67,7 +65,7 @@ def process_video(
     response_model=SubmitJobResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-@_limiter.limit("10/minute")
+@limiter.limit("10/minute")
 def submit_job(
     request: Request,
     payload: SubmitJobRequest,

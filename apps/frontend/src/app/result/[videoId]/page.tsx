@@ -101,7 +101,13 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
       <h1 className="title">Notes for {params.videoId}</h1>
       <p className="lead">Here's everything we organized from your video.</p>
 
-      {isLoading ? <p className="feedback">Loading parsed content...</p> : null}
+      {isLoading ? (
+        <div className="skeleton-group">
+          {[0, 1, 2].map((i) => (
+            <div className="skeleton-block" key={i} />
+          ))}
+        </div>
+      ) : null}
       {error ? <p className="feedback feedback-error">{error}</p> : null}
 
       {data ? (

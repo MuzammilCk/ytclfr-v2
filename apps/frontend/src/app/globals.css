@@ -449,3 +449,25 @@ a {
   }
 }
 
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.skeleton-block {
+  height: 96px;
+  border-radius: var(--radius-md);
+  background: rgba(23, 50, 43, 0.06);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

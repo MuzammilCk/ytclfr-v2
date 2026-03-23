@@ -36,6 +36,16 @@ _CHANNEL_PREFIX = "ytclfr:job_events"
 _HEARTBEAT_INTERVAL_SECONDS = 15
 _SUBSCRIBE_TIMEOUT_SECONDS = 300  # 5 minutes max per connection
 
+_redis_pool: aioredis.ConnectionPool | None = None
+
+def _get_redis_pool(redis_url: str) -> aioredis.ConnectionPool:
+    global _redis_pool
+    if _redis_pool is None:
+        _redis_pool = aioredis.ConnectionPool.from_url(
+            redis_url, max_connections=50, decode_responses=True
+        )
+    return _redis_pool
+
 
 def _channel_name(job_id: str) -> str:
     return f"{_CHANNEL_PREFIX}:{job_id}"
@@ -64,7 +74,8 @@ async def _job_event_generator(
     emits heartbeats every 15 seconds to keep the connection alive, and
     closes when a terminal state is received or the timeout is reached.
     """
-    client = aioredis.from_url(redis_url, decode_responses=True)
+    pool = _get_redis_pool(redis_url)
+    client = aioredis.Redis(connection_pool=pool)
     pubsub = client.pubsub()
     channel = _channel_name(job_id)
 
@@ -116,7 +127,7 @@ async def _job_event_generator(
     finally:
         try:
             await pubsub.unsubscribe(channel)
-            await client.aclose()
+            await pubsub.aclose()
         except Exception:
             pass
 
