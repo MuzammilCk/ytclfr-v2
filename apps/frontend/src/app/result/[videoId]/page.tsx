@@ -97,10 +97,9 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
   }, [spotifyPlaylistUrl]);
 
   return (
-    <section className="card hero">
-      <span className="eyebrow">Result</span>
-      <h1 className="title">Video {params.videoId}</h1>
-      <p className="lead">Structured output extracted from the completed pipeline.</p>
+    <section className="hero">
+      <h1 className="title">Notes for {params.videoId}</h1>
+      <p className="lead">Here's everything we organized from your video.</p>
 
       {isLoading ? <p className="feedback">Loading parsed content...</p> : null}
       {error ? <p className="feedback feedback-error">{error}</p> : null}
@@ -109,12 +108,12 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
         <>
           {data.items.length === 0 ? (
             <p className="feedback feedback-warning">
-              No parsed items were found for this video yet.
+              We couldn't extract any structured notes from this video.
             </p>
           ) : (
-            <div className="results-grid">
+            <div className="content-feed">
               {data.items.map((item, index) => (
-                <article className="result-item" key={`${item.title}-${index}`}>
+                <article className="feed-item" key={`${item.title}-${index}`}>
                   <h3>{item.title || `Result item ${index + 1}`}</h3>
                   <p>{item.description || "No description available."}</p>
                   {item.tags?.length ? (
@@ -131,12 +130,12 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
             </div>
           )}
 
-          <section className="playlist-card">
+          <section className="playlist-section">
             <h3>Spotify Playlist</h3>
             {spotifyPlaylistUrl ? (
               <>
                 <p className="lead">
-                  Playlist data was detected in extracted content. Open externally or preview below.
+                  We found music references! Listen to the automatically generated playlist below.
                 </p>
                 <div className="actions">
                   <Link

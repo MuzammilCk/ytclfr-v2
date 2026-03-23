@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
+import { Fraunces, Outfit } from "next/font/google";
 
 import "./globals.css";
 
-const displayFont = Space_Grotesk({
+const displayFont = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "700"],
+  weight: ["500", "600"],
 });
 
-const bodyFont = Source_Sans_3({
+const bodyFont = Outfit({
   subsets: ["latin"],
   variable: "--font-body",
-  weight: ["400", "600"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {

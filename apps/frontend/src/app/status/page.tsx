@@ -17,16 +17,12 @@ export default function StatusLookupPage() {
   }
 
   return (
-    <section className="card hero">
-      <span className="eyebrow">Processing Status</span>
-      <h1 className="title">Check an existing job.</h1>
-      <p className="lead">
-        Paste a job identifier to monitor the current pipeline state and access the final result
-        when processing is completed.
-      </p>
+    <section className="hero">
+      <h1 className="title">Track your video.</h1>
+      <p className="lead">Enter your tracking ID to see if your notes are ready.</p>
       <form className="stack" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="job-id">
-          Job ID
+          Tracking ID
         </label>
         <input
           autoComplete="off"
@@ -40,7 +36,7 @@ export default function StatusLookupPage() {
         />
         <div className="actions">
           <button className="button button-primary" type="submit">
-            Open Status
+            Check Status
           </button>
         </div>
       </form>

@@ -1,6 +1,14 @@
 """OCR engine implementation using PaddleOCR."""
 
 import os
+
+# Must be set BEFORE paddle is imported anywhere in the process.
+# Fixes PaddlePaddle >=3.3 crash: "ConvertPirAttribute2RuntimeAttribute
+# not support [pir::ArrayAttribute<pir::DoubleAttribute>]"
+os.environ.setdefault("FLAGS_enable_pir_in_executor", "0")
+os.environ.setdefault("FLAGS_enable_pir_api", "0")
+os.environ.setdefault("FLAGS_use_mkldnn", "0")
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,9 +48,6 @@ class PaddleOCREngine:
         if min_confidence < 0.0 or min_confidence > 1.0:
             raise OCRProcessingError("OCR min_confidence must be between 0.0 and 1.0.")
         try:
-            # Disable PIR executor to work around oneDNN crash in PaddlePaddle >=3.3
-            # (ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute])
-            os.environ.setdefault("FLAGS_enable_pir_in_executor", "0")
             from paddleocr import PaddleOCR
         except ModuleNotFoundError as exc:
             raise OCRProcessingError("PaddleOCR is not installed.") from exc

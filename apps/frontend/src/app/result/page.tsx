@@ -17,12 +17,9 @@ export default function ResultLookupPage() {
   }
 
   return (
-    <section className="card hero">
-      <span className="eyebrow">Result</span>
-      <h1 className="title">Open parsed output by video ID.</h1>
-      <p className="lead">
-        Use this page to fetch extracted data and generated actions for a processed video.
-      </p>
+    <section className="hero">
+      <h1 className="title">View your notes.</h1>
+      <p className="lead">Enter your Video ID to access your extracted highlights and playlists.</p>
       <form className="stack" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="video-id">
           Video ID
@@ -39,7 +36,7 @@ export default function ResultLookupPage() {
         />
         <div className="actions">
           <button className="button button-primary" type="submit">
-            Open Result
+            Open Notes
           </button>
         </div>
       </form>

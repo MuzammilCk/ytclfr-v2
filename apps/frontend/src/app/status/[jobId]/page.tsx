@@ -51,10 +51,10 @@ function getSteps(status: JobStatus): PipelineStep[] {
   const generated = normalized === "COMPLETED";
 
   return [
-    { label: "Job queued", active: queued },
-    { label: "Download + frame extraction + OCR", active: processing },
-    { label: "AI parsing + output generation", active: processing },
-    { label: "Completed", active: generated },
+    { label: "Waiting in line", active: queued },
+    { label: "Watching the video and reading text", active: processing },
+    { label: "Organizing the notes", active: processing },
+    { label: "Ready to view", active: generated },
   ];
 }
 
@@ -223,13 +223,12 @@ export default function JobStatusPage({ params }: JobStatusPageProps) {
   // Render
   // ------------------------------------------------------------------
   return (
-    <section className="card hero">
-      <span className="eyebrow">Processing Status</span>
-      <h1 className="title">Job {params.jobId}</h1>
+    <section className="hero">
+      <h1 className="title">Tracking ID: {params.jobId}</h1>
       <p className="lead">
         {connectionMode === "sse"
-          ? "Receiving live pipeline updates."
-          : "Polling for pipeline updates every 4 seconds."}
+          ? "Live updates straight from our servers."
+          : "Checking for updates every few seconds..."}
       </p>
 
       {isLoading ? <p className="feedback">Loading latest status...</p> : null}
@@ -252,6 +251,8 @@ export default function JobStatusPage({ params }: JobStatusPageProps) {
           className="progress-track"
           role="progressbar"
           aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
         >
           <div
             className="progress-value"

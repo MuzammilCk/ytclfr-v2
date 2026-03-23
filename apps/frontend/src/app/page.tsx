@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { ApiError, processVideo } from "../lib/api";
 
@@ -68,7 +69,7 @@ export default function HomePage() {
     setError(null);
 
     if (!isValidYoutubeUrl(value)) {
-      setError("Enter a valid YouTube watch, shorts, or youtu.be URL.");
+      setError("Please enter a valid YouTube link.");
       return;
     }
 
@@ -88,19 +89,17 @@ export default function HomePage() {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Unexpected error while queueing video processing.");
+        setError("Something went wrong. Please try again later.");
       }
       setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="card hero">
-      <span className="eyebrow">Video to Knowledge</span>
-      <h1 className="title">Turn any YouTube video into structured insights.</h1>
+    <section className="hero">
+      <h1 className="title">Turn any YouTube video into clear notes and playlists.</h1>
       <p className="lead">
-        Submit a link, track pipeline progress in real time, and review extracted knowledge in one
-        place.
+        Paste a link below. We'll watch the video, read the text, and organize the highlights for you automatically.
       </p>
 
       <form className="stack" onSubmit={handleSubmit}>
@@ -120,7 +119,7 @@ export default function HomePage() {
         />
         <div className="actions">
           <button className="button button-primary" disabled={!canSubmit} type="submit">
-            {isSubmitting ? "Queueing..." : "Process Video"}
+            {isSubmitting ? "Analyzing..." : "Extract Notes"}
           </button>
         </div>
       </form>
@@ -128,25 +127,24 @@ export default function HomePage() {
       {error ? <p className="feedback feedback-error">{error}</p> : null}
 
       {recentJobs.length > 0 && (
-        <div style={{ marginTop: "3rem", width: "100%", textAlign: "left" }}>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>Your Recent Videos</h2>
-          <ul style={{ display: "flex", flexDirection: "column", gap: "0.75rem", listStyle: "none", padding: 0 }}>
+        <div className="recent-jobs-section">
+          <h2>Your Recent Videos</h2>
+          <ul className="recent-jobs-list">
             {recentJobs.map((job) => (
-               <li key={job.jobId} style={{ background: "rgba(255, 255, 255, 0.05)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
-                 <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.7 }}>
+               <li key={job.jobId} className="job-item">
+                 <p>
                    {new Date(job.timestamp).toLocaleString()}
                  </p>
-                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
-                   <span style={{ fontFamily: "monospace", fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: "1rem" }}>
+                 <div className="job-details">
+                   <span className="job-url" title={job.url}>
                      {job.url}
                    </span>
-                   <button 
-                     className="button button-primary" 
-                     onClick={(e) => { e.preventDefault(); router.push(`/status/${job.jobId}`); }}
-                     style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem", whiteSpace: "nowrap" }}
+                   <Link 
+                     href={`/status/${job.jobId}`}
+                     className="button button-primary button-small" 
                    >
                      View Status
-                   </button>
+                   </Link>
                  </div>
                </li>
             ))}
