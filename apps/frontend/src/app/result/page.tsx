@@ -18,8 +18,8 @@ export default function ResultLookupPage() {
 
   return (
     <section className="hero">
-      <h1 className="title">View your notes.</h1>
-      <p className="lead">Enter your Video ID to access your extracted highlights and playlists.</p>
+      <h1 className="title">View your results.</h1>
+      <p className="lead">Enter your Video ID to access playlists, recipes, movie lists, and more.</p>
       <form className="stack" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="video-id">
           Video ID
@@ -36,7 +36,7 @@ export default function ResultLookupPage() {
         />
         <div className="actions">
           <button className="button button-primary" type="submit">
-            Open Notes
+            View Results
           </button>
         </div>
       </form>

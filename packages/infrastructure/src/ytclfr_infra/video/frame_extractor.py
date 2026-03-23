@@ -53,7 +53,11 @@ class FrameExtractor:
         scene_dir.mkdir(parents=True, exist_ok=True)
         interval_dir.mkdir(parents=True, exist_ok=True)
 
-        scene_timestamps = self._detect_scene_timestamps(video_path)
+        try:
+            scene_timestamps = self._detect_scene_timestamps(video_path)
+        except Exception:
+            # Scene detection is best-effort; fall back to interval-only.
+            scene_timestamps = [0.0]
         duration_seconds = self._probe_duration_seconds(video_path)
         interval_timestamps = self._build_interval_timestamps(duration_seconds)
 

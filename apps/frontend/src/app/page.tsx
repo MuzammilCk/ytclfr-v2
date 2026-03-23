@@ -97,9 +97,9 @@ export default function HomePage() {
 
   return (
     <section className="hero">
-      <h1 className="title">Turn any YouTube video into clear notes and playlists.</h1>
+      <h1 className="title">Turn any YouTube video into something useful.</h1>
       <p className="lead">
-        Paste a link below. We'll watch the video, read the text, and organize the highlights for you automatically.
+        Paste a link below. We'll extract playlists, recipes, movie lists, book recommendations, and more — automatically.
       </p>
 
       <form className="stack" onSubmit={handleSubmit}>
@@ -119,7 +119,7 @@ export default function HomePage() {
         />
         <div className="actions">
           <button className="button button-primary" disabled={!canSubmit} type="submit">
-            {isSubmitting ? "Analyzing..." : "Extract Notes"}
+            {isSubmitting ? "Processing..." : "Extract Content"}
           </button>
         </div>
       </form>

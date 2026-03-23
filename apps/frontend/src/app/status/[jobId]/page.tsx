@@ -52,8 +52,8 @@ function getSteps(status: JobStatus): PipelineStep[] {
 
   return [
     { label: "Waiting in line", active: queued },
-    { label: "Watching the video and reading text", active: processing },
-    { label: "Organizing the notes", active: processing },
+    { label: "Analyzing video content", active: processing },
+    { label: "Building your results", active: processing },
     { label: "Ready to view", active: generated },
   ];
 }

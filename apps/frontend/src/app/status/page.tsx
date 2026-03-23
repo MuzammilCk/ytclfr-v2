@@ -19,7 +19,7 @@ export default function StatusLookupPage() {
   return (
     <section className="hero">
       <h1 className="title">Track your video.</h1>
-      <p className="lead">Enter your tracking ID to see if your notes are ready.</p>
+      <p className="lead">Enter your tracking ID to see if your results are ready.</p>
       <form className="stack" onSubmit={handleSubmit}>
         <label className="field-label" htmlFor="job-id">
           Tracking ID

@@ -98,8 +98,8 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
 
   return (
     <section className="hero">
-      <h1 className="title">Notes for {params.videoId}</h1>
-      <p className="lead">Here's everything we organized from your video.</p>
+      <h1 className="title">Results for {params.videoId}</h1>
+      <p className="lead">Here's everything we extracted from your video.</p>
 
       {isLoading ? (
         <div className="skeleton-group">
@@ -114,7 +114,7 @@ export default function VideoResultPage({ params }: VideoResultPageProps) {
         <>
           {data.items.length === 0 ? (
             <p className="feedback feedback-warning">
-              We couldn't extract any structured notes from this video.
+              We couldn't find any structured content in this video.
             </p>
           ) : (
             <div className="content-feed">
