@@ -41,7 +41,23 @@ class ParseAIUseCase:
         """
         stripped = (ocr_text or "").strip()
         if not stripped:
-            raise AIParsingError("Cannot parse empty OCR text.")
+            logger.warning("Empty OCR text received. Returning fallback payload.")
+            return {
+                "video_type": "tutorial",
+                "confidence": 1.0,
+                "summary": "No text detected in video.",
+                "points": ["The video did not contain any readable text."],
+                "entities": [],
+                "structured_data": {
+                    "tutorial": {
+                        "topic": "Unknown",
+                        "prerequisites": [],
+                        "steps": [],
+                        "tools": [],
+                        "outcomes": [],
+                    }
+                },
+            }
 
         try:
             result = await self._client.parse_ocr_text(stripped)

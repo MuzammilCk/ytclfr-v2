@@ -101,10 +101,9 @@ class PaddleOCREngine:
                     skipped += 1
                     continue  # skip this frame, process the rest
 
-        if not lines and normalized_frames:
+        if skipped == len(normalized_frames) and normalized_frames:
             raise OCRProcessingError(
-                f"PaddleOCR failed on all {len(normalized_frames)} frames "
-                f"({skipped} skipped)."
+                f"PaddleOCR failed on all {len(normalized_frames)} frames."
             )
         return lines
 

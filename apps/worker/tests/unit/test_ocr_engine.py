@@ -65,11 +65,12 @@ def test_iter_text_confidence_pairs_supports_new_api_shape() -> None:
     assert pairs == [("Alpha", 0.81), ("Beta", 0.94)]
 
 
-def test_extract_from_frames_raises_for_missing_image(tmp_path: Path) -> None:
-    """Engine should fail fast when frame image path does not exist."""
+def test_extract_from_frames_skips_missing_image(tmp_path: Path) -> None:
+    """Engine should skip missing frame images and return empty list."""
     engine = _build_engine_for_test(payload=[], min_confidence=0.0)
     missing = tmp_path / "missing.jpg"
 
-    with pytest.raises(OCRProcessingError):
-        engine.extract_from_frames([OCRFrameInput(image_path=missing, timestamp_seconds=0.0)])
+    # Missing frames are silently skipped; empty input yields empty output.
+    lines = engine.extract_from_frames([OCRFrameInput(image_path=missing, timestamp_seconds=0.0)])
+    assert lines == []
 

@@ -99,7 +99,7 @@ class Settings(BaseSettings):
         description="JavaScript runtime for yt-dlp EJS challenge solving (e.g. node, deno, bun).",
     )
     ffmpeg_bin: str = Field(default="ffmpeg", alias="FFMPEG_BIN")
-    frame_extraction_fps: int = Field(default=1, alias="FRAME_EXTRACTION_FPS", ge=1, le=120)
+    frame_extraction_fps: float = Field(default=1.0, alias="FRAME_EXTRACTION_FPS", gt=0.0, le=120.0)
     ocr_language: str = Field(default="en", alias="OCR_LANGUAGE", min_length=2, max_length=8)
     ocr_use_gpu: bool = Field(default=False, alias="OCR_USE_GPU")
     ocr_batch_size: int = Field(default=8, alias="OCR_BATCH_SIZE", ge=1, le=256)
